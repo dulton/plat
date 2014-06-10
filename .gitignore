@@ -1,21 +1,18 @@
 # C++ objects and libs
-
-*.slo
-*.lo
-*.o
-*.a
-*.la
-*.lai
-*.so
-*.dll
-*.dylib
-
+#*.slo
+#*.lo
+#*.o
+#*.a
+#*.la
+#*.lai
+#*.so
+#*.dll
+#*.dylib
 # Qt-es
-
 /.qmake.cache
 /.qmake.stash
-./*.pro.user
-./*.pro.user.*
+PLAT.pro.user
+PLAT.pro.user.*
 *.moc
 moc_*.cpp
 qrc_*.cpp
@@ -24,5 +21,4 @@ Makefile*
 *-build-*
 
 # QtCreator
-
 *.autosave
