@@ -11,8 +11,8 @@
 # Qt-es
 /.qmake.cache
 /.qmake.stash
-PLAT.pro.user
-PLAT.pro.user.*
+*.pro.user
+*.pro.user.*
 *.moc
 moc_*.cpp
 qrc_*.cpp
