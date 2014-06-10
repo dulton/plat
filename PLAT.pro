@@ -13,9 +13,13 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        platmainw.cpp
+        platmainw.cpp \
+    videoview.cpp \
+    videofiltersmodel.cpp
 
-HEADERS  += platmainw.h
+HEADERS  += platmainw.h \
+    videoview.h \
+    videofiltersmodel.h
 
 FORMS    += platmainw.ui
 
@@ -51,4 +55,18 @@ win32:LIBS += -lws2_32
 win32:LIBS += -lDnsAPI
 win32:LIBS += -lIPHlpApi
 
+
+
+
 DEFINES += QT_5
+
+#vlc for windows
+win32: LIBS += -L$$PWD/vlc_lib/ -llibvlc
+win32:INCLUDEPATH += $$PWD/vlc_include
+win32:DEPENDPATH += $$PWD/vlc_include
+win32: PRE_TARGETDEPS += $$PWD/vlc_lib/libvlc.lib
+
+win32: LIBS += -L$$PWD/vlc_lib/ -llibvlccore
+win32:INCLUDEPATH += $$PWD/vlc_include
+win32:DEPENDPATH += $$PWD/vlc_include
+win32: PRE_TARGETDEPS += $$PWD/vlc_lib/libvlccore.lib
