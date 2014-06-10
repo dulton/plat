@@ -31,6 +31,8 @@ public:
     void setSize(const QSize &size);
     QSize sizeHint() const;
     VideoFiltersModel* videoFiltersModel() const { return m_videoFiltersModel; }
+    QString localsdp() const;
+    void setLocalsdp(const QString &localsdp);
 signals:
 
 protected slots:
@@ -44,6 +46,7 @@ private:
     bool m_recording;
     QString m_recordingFilePath;
     VideoFiltersModel* m_videoFiltersModel;
+    QString _localsdp;
 };
 
 #endif // VIDEOVIEW_H

@@ -1,0 +1,5 @@
+m=video 1576 RTP/AVP 100
+a=rtpmap:100 H264/90000;
+a=decode_buf=300;
+a=framerate:25
+c=IN IP4 0.0.0.0

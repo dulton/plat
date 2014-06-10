@@ -15,11 +15,15 @@ TEMPLATE = app
 SOURCES += main.cpp\
         platmainw.cpp \
     videoview.cpp \
-    videofiltersmodel.cpp
+    videofiltersmodel.cpp \
+    sipevtthr.cpp \
+    settings.cpp
 
 HEADERS  += platmainw.h \
     videoview.h \
-    videofiltersmodel.h
+    videofiltersmodel.h \
+    sipevtthr.h \
+    settings.h
 
 FORMS    += platmainw.ui
 
@@ -56,10 +60,6 @@ win32:LIBS += -lDnsAPI
 win32:LIBS += -lIPHlpApi
 
 
-
-
-DEFINES += QT_5
-
 #vlc for windows
 win32: LIBS += -L$$PWD/vlc_lib/ -llibvlc
 win32:INCLUDEPATH += $$PWD/vlc_include
@@ -70,3 +70,13 @@ win32: LIBS += -L$$PWD/vlc_lib/ -llibvlccore
 win32:INCLUDEPATH += $$PWD/vlc_include
 win32:DEPENDPATH += $$PWD/vlc_include
 win32: PRE_TARGETDEPS += $$PWD/vlc_lib/libvlccore.lib
+#vlc for linux
+unix:LIBS += -lvlc
+
+RESOURCES += \
+    res.qrc
+
+DEFINES += QT_5
+
+OTHER_FILES += \
+    plat.ini

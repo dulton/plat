@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>903</width>
-    <height>615</height>
+    <width>865</width>
+    <height>658</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,18 +19,18 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>521</width>
-      <height>391</height>
+      <width>611</width>
+      <height>411</height>
      </rect>
     </property>
    </widget>
    <widget class="QGroupBox" name="gp_ptz">
     <property name="geometry">
      <rect>
-      <x>550</x>
+      <x>650</x>
       <y>10</y>
       <width>181</width>
-      <height>261</height>
+      <height>231</height>
      </rect>
     </property>
     <property name="title">
@@ -201,13 +201,75 @@
      </layout>
     </widget>
    </widget>
+   <widget class="QGroupBox" name="gp_debug">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>440</y>
+      <width>621</width>
+      <height>161</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Debug Info</string>
+    </property>
+    <widget class="QTextBrowser" name="txt_debug">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>20</y>
+       <width>611</width>
+       <height>135</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="gp_opts">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>250</y>
+      <width>181</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>gp_opts</string>
+    </property>
+    <widget class="QPushButton" name="btn_invate">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>99</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>INVATE</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_stop">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>99</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>STOP</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>903</width>
+     <width>865</width>
      <height>25</height>
     </rect>
    </property>

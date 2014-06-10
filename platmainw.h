@@ -1,8 +1,12 @@
 #ifndef PLATMAINW_H
 #define PLATMAINW_H
 
-#include <QMainWindow>
 #include "videoview.h"
+#include "settings.h"
+#include "sipevtthr.h"
+#include <QMainWindow>
+#include <QFile>
+#include <QThread>
 
 namespace Ui {
 class PlatMainW;
@@ -16,11 +20,25 @@ public:
     explicit PlatMainW(QWidget *parent = 0);
     ~PlatMainW();
 
+private slots:
+    void on_btn_invate_clicked();
+
+    void on_btn_stop_clicked();
+
+    void evtLoopErr(QString err);
 private:
-    void extUISetUp();
+    void _extUISetUp();
+    void _extDataSetUp();
+    void _initCfg();
+    void _initSipEvtListener();
 private:
     Ui::PlatMainW *ui;
     VideoView *_videoview;
+    QFile *_sdpfile;
+    Settings *_settings;
+    QMap<QString, QString> _setmap;
+    QThread *_evtthr;
+    SipEvtThr *_evtworker;
 };
 
 #endif // PLATMAINW_H

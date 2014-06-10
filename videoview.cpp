@@ -48,19 +48,9 @@ VideoView::~VideoView() {
 void VideoView::start() {
     Q_ASSERT(!m_vlcMediaPlayer);
 
-    const char* webcamMrl;
-#if defined(Q_OS_LINUX)
-    webcamMrl = "/home/mars/ACHIVE/cat.sdp";
-#elif defined(Q_OS_WIN)
-    webcamMrl = "dshow://";
-#elif defined(Q_OS_MAC)
-    webcamMrl = "qtcapture://";
-#else
-//#error "unsupported platform"
-#endif
 
-    libvlc_media_t* vlcMedia = libvlc_media_new_location(m_vlcInstance, webcamMrl);
-    //libvlc_media_t* vlcMedia = libvlc_media_new_path(m_vlcInstance, webcamMrl);
+    //libvlc_media_t* vlcMedia = libvlc_media_new_location(m_vlcInstance, webcamMrl);
+    libvlc_media_t* vlcMedia = libvlc_media_new_path(m_vlcInstance, _localsdp.toStdString().c_str());
     if (m_recording) {
         Q_ASSERT(!m_recordingFilePath.isEmpty());
 
@@ -151,6 +141,15 @@ void VideoView::closeEvent(QCloseEvent *event) {
     stop();
     QWidget::closeEvent(event);
 }
+
+QString VideoView::localsdp() const {
+    return _localsdp;
+}
+
+void VideoView::setLocalsdp(const QString &localsdp) {
+    _localsdp = localsdp;
+}
+
 
 void VideoView::enabledFiltersChanged()
 {
