@@ -51,6 +51,4 @@ win32:LIBS += -lws2_32
 win32:LIBS += -lDnsAPI
 win32:LIBS += -lIPHlpApi
 
-
-
-
+DEFINES += QT_5
