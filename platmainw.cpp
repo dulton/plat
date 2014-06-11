@@ -31,6 +31,9 @@ PlatMainW::~PlatMainW()
         }
         delete _sdpfile;
     }
+    if(_localip != NULL) {
+        delete []_localip;
+    }
 }
 
 void PlatMainW::_extUISetUp() {
@@ -64,7 +67,40 @@ void PlatMainW::_extDataSetUp() {
 void PlatMainW::_initCfg() {
     _settings = new Settings("./plat.ini");
     _setmap = _settings->readGrp("APP_CFG");
-    /*default values*/
+
+    _dftrtp_port = 0;
+    _dftsip_port = 0;
+    _localip = NULL;
+
+    /*simple vilidate*/
+    if(_setmap.count() > 0) {
+        QMap<QString, QString>::const_iterator i;
+        for(i = _setmap.constBegin(); i != _setmap.constEnd(); ++i) {
+            if(QString::compare("local_ip", i.key(), Qt::CaseInsensitive) == 0) {
+                _localip = new char[i.value().trimmed().length()];
+                if(_localip == NULL) {
+                    exit(-1);
+                }
+                int _len = i.value().trimmed().length();
+                for(int cnt = 0; cnt < _len; cnt++) {
+                    _localip[cnt] = i.value().at(cnt).toLatin1();
+                }
+            } else if(QString::compare("sip_port", i.key(), Qt::CaseInsensitive) == 0) {
+                bool cvtflg = false;
+                _dftsip_port = i.value().toInt(&cvtflg);
+                if(!cvtflg) {
+                    _dftsip_port = 5060;
+                }
+            } else if(QString::compare("rtp_port", i.key(), Qt::CaseInsensitive) == 0) {
+                bool cvtflg = false;
+                _dftrtp_port = i.value().toInt(&cvtflg);
+                if(!cvtflg) {
+                    _dftrtp_port = 1576;
+                }
+            }
+        }
+    }
+    return;
 }
 
 void PlatMainW::_initSipEvtListener() {
@@ -73,7 +109,7 @@ void PlatMainW::_initSipEvtListener() {
         exit(-1);
     }
     _evtthr = new QThread();
-    _evtworker = new SipEvtThr(_setmap);
+    _evtworker = new SipEvtThr(_dftsip_port, _dftrtp_port, _localip);
     _evtworker->moveToThread(_evtthr);
     connect(_evtworker, SIGNAL(err(QString)),
             this, SLOT(evtLoopErr(QString)));
@@ -93,23 +129,14 @@ int PlatMainW::_initExosip() {
     if(ret != 0) {
         return -1;
     }
-
-    if(_setmap.count() <= 0) {
+    if(_localip == NULL && _dftsip_port == 0) {
         ret = eXosip_listen_addr(IPPROTO_UDP, NULL, 15060, AF_INET, 0);
-    } else {
-        const char *ipstr = _setmap.value("local_ip").toStdString().c_str();
-        bool ok;
-        int sipport = _setmap.value("sip_port").toInt(&ok);
-        if(!ok) {
-            sipport = 15060;
-        }
-        if(ipstr != NULL) {
-            for(int i = 0 ; i < strlen(ipstr); i++) {
-                qDebug() << *(ipstr + i);
-            }
-            qDebug() << sipport;
-            ret = eXosip_listen_addr(IPPROTO_UDP, ipstr, sipport, AF_INET, 0);
-        }
+    } else if(_localip != NULL && _dftsip_port != 0) {
+        ret = eXosip_listen_addr(IPPROTO_UDP, _localip, _dftsip_port, AF_INET, 0);
+    } else if(_localip == NULL && _dftsip_port != 0) {
+        ret = eXosip_listen_addr(IPPROTO_UDP, NULL, _dftsip_port, AF_INET, 0);
+    } else if(_localip != NULL && _dftsip_port == 0) {
+        ret = eXosip_listen_addr(IPPROTO_UDP, _localip, 15060, AF_INET, 0);
     }
     if(ret != 0) {
         eXosip_quit();

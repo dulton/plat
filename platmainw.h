@@ -40,6 +40,9 @@ private:
     QMap<QString, QString> _setmap;
     QThread *_evtthr;
     SipEvtThr *_evtworker;
+    int _dftsip_port;
+    int _dftrtp_port;
+    char *_localip;
 };
 
 #endif // PLATMAINW_H
