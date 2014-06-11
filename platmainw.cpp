@@ -82,6 +82,10 @@ void PlatMainW::_initCfg() {
                     exit(-1);
                 }
                 int _len = i.value().trimmed().length();
+#if defined(Q_OS_WIN)
+                _ipaddlen = _len;
+#endif
+                memset(_localip, 0, sizeof(char) * _len);
                 for(int cnt = 0; cnt < _len; cnt++) {
                     _localip[cnt] = i.value().at(cnt).toLatin1();
                 }
@@ -129,6 +133,13 @@ int PlatMainW::_initExosip() {
     if(ret != 0) {
         return -1;
     }
+#if defined(Q_OS_WIN)
+    /*on windows the string len not right
+     uglily fix*/
+    if(_ipaddlen > 0 && (int)strlen(_localip) > _ipaddlen) {
+        *(_localip + _ipaddlen) = '\0';
+    }
+#endif
     if(_localip == NULL && _dftsip_port == 0) {
         ret = eXosip_listen_addr(IPPROTO_UDP, NULL, 15060, AF_INET, 0);
     } else if(_localip != NULL && _dftsip_port != 0) {

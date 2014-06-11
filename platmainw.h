@@ -43,6 +43,9 @@ private:
     int _dftsip_port;
     int _dftrtp_port;
     char *_localip;
+#if defined(Q_OS_WIN)
+    int _ipaddlen;
+#endif
 };
 
 #endif // PLATMAINW_H

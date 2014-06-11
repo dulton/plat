@@ -14,7 +14,7 @@ QMap<QString, QString> Settings::readGrp(QString grp) {
     if(grp.length() > 0) {
         QFile file;
         file.setFileName(this->fileName());
-        qDebug() << this->fileName();
+        qDebug() << Q_FUNC_INFO <<this->fileName();
         if(!file.exists()) {
             return retmap;
         }
@@ -24,7 +24,7 @@ QMap<QString, QString> Settings::readGrp(QString grp) {
             QString item;
             QStringList items = childKeys();
             foreach (item, items) {
-                retmap.insert(item, value(item, "").toString());
+                retmap.insert(item, value(item, "").toString().trimmed());
             }
             endGroup();
         }
