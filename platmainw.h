@@ -31,6 +31,7 @@ private:
     void _extDataSetUp();
     void _initCfg();
     void _initSipEvtListener();
+    int _initExosip();
 private:
     Ui::PlatMainW *ui;
     VideoView *_videoview;

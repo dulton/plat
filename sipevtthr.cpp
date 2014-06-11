@@ -48,7 +48,7 @@ SipEvtThr::~SipEvtThr() {
 }
 
 void SipEvtThr::evtloop() {
-    _exosipInit();
+    //_exosipInit();
     while(true) {
         pevt = eXosip_event_wait(S, MS);
         if(pevt == NULL) {
@@ -68,15 +68,23 @@ void SipEvtThr::evtloop() {
 
 }
 
+//move to main loop
+//win will crash here!
+/*
 int SipEvtThr::_exosipInit() {
+
     int ret = eXosip_init();
     if(ret != 0) {
+        emit err("init err");
         return ret;
     }
+
     ret = eXosip_listen_addr(IPPROTO_UDP, _localip, _dftsip_port, AF_INET, 0);
     if(ret != 0) {
         eXosip_quit();
+        emit err("listen bind err");
         return ret;
     }
     return 0;
 }
+*/

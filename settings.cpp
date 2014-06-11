@@ -2,6 +2,7 @@
 #include <QFile>
 #include <QTextCodec>
 #include <QDebug>
+#include <QStringList>
 
 Settings::Settings(QString filename, QObject *parent) :
     QSettings(filename, QSettings::IniFormat, parent) {
@@ -13,6 +14,7 @@ QMap<QString, QString> Settings::readGrp(QString grp) {
     if(grp.length() > 0) {
         QFile file;
         file.setFileName(this->fileName());
+        qDebug() << this->fileName();
         if(!file.exists()) {
             return retmap;
         }

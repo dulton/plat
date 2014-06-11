@@ -3,9 +3,13 @@
 #include <QDebug>
 #include <QResource>
 
-#include <eXosip2/eXosip.h>
+#if defined(Q_OS_WIN)
+#include <WinSock2.h>
+#include "eXosip2/eXosip.h"
+#elif defined(Q_OS_LINUX)
 #include <netinet/in.h>
-
+#include <eXosip2/eXosip.h>
+#endif
 
 PlatMainW::PlatMainW(QWidget *parent) :
     QMainWindow(parent),
@@ -65,18 +69,9 @@ void PlatMainW::_initCfg() {
 
 void PlatMainW::_initSipEvtListener() {
 
-    /*
-    int ret = eXosip_init();
-    if(ret != 0) {
-        return;
+    if(_initExosip() != 0) {
+        exit(-1);
     }
-    ret = eXosip_listen_addr(IPPROTO_UDP, NULL, 5060, AF_INET, 0);
-    if(ret != 0) {
-        eXosip_quit();
-        return;
-    }
-    */
-
     _evtthr = new QThread();
     _evtworker = new SipEvtThr(_setmap);
     _evtworker->moveToThread(_evtthr);
@@ -91,6 +86,36 @@ void PlatMainW::_initSipEvtListener() {
     connect(_evtworker, SIGNAL(finished()),
             _evtthr, SLOT(deleteLater()));
     _evtthr->start();
+}
+
+int PlatMainW::_initExosip() {
+    int ret = eXosip_init();
+    if(ret != 0) {
+        return -1;
+    }
+
+    if(_setmap.count() <= 0) {
+        ret = eXosip_listen_addr(IPPROTO_UDP, NULL, 15060, AF_INET, 0);
+    } else {
+        const char *ipstr = _setmap.value("local_ip").toStdString().c_str();
+        bool ok;
+        int sipport = _setmap.value("sip_port").toInt(&ok);
+        if(!ok) {
+            sipport = 15060;
+        }
+        if(ipstr != NULL) {
+            for(int i = 0 ; i < strlen(ipstr); i++) {
+                qDebug() << *(ipstr + i);
+            }
+            qDebug() << sipport;
+            ret = eXosip_listen_addr(IPPROTO_UDP, ipstr, sipport, AF_INET, 0);
+        }
+    }
+    if(ret != 0) {
+        eXosip_quit();
+        return -2;
+    }
+    return ret;
 }
 
 void PlatMainW::on_btn_invate_clicked() {

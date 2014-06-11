@@ -19,7 +19,7 @@ signals:
 public slots:
     void evtloop();
 private:
-    int _exosipInit();
+    //int _exosipInit();
 private:
     eXosip_event *pevt;
     int _dftsip_port;
