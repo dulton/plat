@@ -26,6 +26,9 @@ private slots:
     void on_btn_stop_clicked();
 
     void evtLoopErr(QString err);
+    void evtLoopInfo(QString info);
+    void evtLoopWarn(QString warn);
+    void evtLoopSucc(QString succ);
 private:
     void _extUISetUp();
     void _extDataSetUp();
@@ -43,6 +46,10 @@ private:
     int _dftsip_port;
     int _dftrtp_port;
     char *_localip;
+    QPalette _txt_sstyle;
+    QPalette _txt_istyle;
+    QPalette _txt_estyle;
+    QPalette _txt_wstyle;
 #if defined(Q_OS_WIN)
     int _ipaddlen;
 #endif

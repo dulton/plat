@@ -1,5 +1,6 @@
 #include "sipevtthr.h"
 #include <QDebug>
+#include <QCryptographicHash>
 
 #if defined(Q_OS_WIN)
 #include <winsock2.h>
@@ -48,25 +49,27 @@ void SipEvtThr::evtloop() {
                 osip_authorization_t *auth;
                 osip_message_get_authorization(pevt->request, 0, &auth);
                 if(auth != NULL) {
-                    if(auth->algorithm != NULL) {
-                        qDebug() << auth->algorithm;
+                    int chk_ret = _chkRegInfo(auth->response, auth->username, "pass", auth->realm,
+                                auth->uri, osip_message_get_method(pevt->request),
+                                auth->nonce);
+                    if(chk_ret != 0) {
+                        qDebug() << "break on check";
+                        break;
                     }
-                    if(auth->auth_type != NULL) {
-                        qDebug() << auth->auth_type;
+                    chk_ret = _cmpRespMd5(auth->response, auth->username, "pass", auth->realm,
+                                auth->uri, osip_message_get_method(pevt->request),
+                                auth->nonce);
+                    if(chk_ret == 0) {
+                        eXosip_lock();
+                        _send_2xxReg(pevt);
+                        eXosip_unlock();
+                    } else {
+                        eXosip_lock();
+                        _send_401Reg(pevt,
+                                     _data.local_ip,  (char *)_data.nonce,
+                                     (char *)_data.alg, (char *)_data.auth_type);
+                        eXosip_unlock();
                     }
-                    if(auth->nonce != NULL) {
-                        qDebug() << auth->nonce;
-                    }
-                    if(auth->response != NULL) {
-                        qDebug() << auth->response;
-                    }
-                    if(auth->username != NULL) {
-                        qDebug() << auth->username;
-                    }
-                    if(auth->uri != NULL) {
-                        qDebug() << auth->uri;
-                    }
-                    qDebug() << "method is :" << osip_message_get_method(pevt->request);
                 } else {
                     eXosip_lock();
                     _send_401Reg(pevt,
@@ -121,6 +124,16 @@ int SipEvtThr::_send_401Reg(eXosip_event_t *e,
     return 0;
 }
 
+int SipEvtThr::_send_2xxAns(eXosip_event_t *e) {
+    if(e == NULL) {
+        return -1;
+    }
+    osip_message_t *ans;
+    eXosip_message_build_answer(e->tid, 200, &ans);
+    eXosip_message_send_answer(e->tid, 200, ans);
+    return 0;
+}
+
 int SipEvtThr::_addQuote(char *str, int len, char *out, int olen) {
     if(str == NULL || len <= 0 || out == NULL || olen < len + 2) {
         return -1;
@@ -136,12 +149,59 @@ int SipEvtThr::_addQuote(char *str, int len, char *out, int olen) {
     return 0;
 }
 
-int SipEvtThr::_cmpRespMd5(const char *org) {
-    if(org != NULL) {
-
+QString SipEvtThr::_rmQuote(char *str) {
+    QString ret;
+    if(str != NULL && strlen(str) > 0) {
+        ret.append(str);
+        if(ret.startsWith("\"")) {
+            ret.remove(0, 1);
+        }
+        if(ret.endsWith("\"")) {
+            ret.chop(1);
+        }
     }
-    return 0;
+    return ret;
 }
+
+
+int SipEvtThr::_cmpRespMd5(char *resp, char *username, char *pass,
+                           char *relam, char *uri, char *method, char *nonce) {
+    QString qresp = _rmQuote(resp);
+    QString qusrname = _rmQuote(username);
+    QString qpass = _rmQuote(pass);
+    QString qrelam = _rmQuote(relam);
+    QString quri = _rmQuote(uri);
+    QString qmethod = _rmQuote(method);
+    QString qnonce = _rmQuote(nonce);
+
+    QCryptographicHash ha1(QCryptographicHash::Md5);
+    QCryptographicHash ha2(QCryptographicHash::Md5);
+    QCryptographicHash ha3(QCryptographicHash::Md5);
+    QString ha1_calc = qusrname + QString(":") + qrelam + QString(":") + qpass;
+    QString ha2_calc = qmethod + QString(":") + quri;
+
+    ha1.addData(ha1_calc.toStdString().c_str(),
+                strlen(ha1_calc.toStdString().c_str()));
+    ha2.addData(ha2_calc.toStdString().c_str(),
+                strlen(ha2_calc.toStdString().c_str()));
+
+
+    QString ha3_calc;
+    ha3_calc.append(ha1.result().toHex().data());
+    ha3_calc.append(":");
+    ha3_calc.append(qnonce);
+    ha3_calc.append(":");
+    ha3_calc.append(ha2.result().toHex().data());
+    ha3.addData(ha3_calc.toStdString().c_str(),
+                strlen(ha3_calc.toStdString().c_str()));
+
+    QString fin(ha3.result().toHex().data());
+    if(fin.compare(qresp) == 0) {
+        return 0;
+    }
+    return -1;
+}
+
 
 //move to main loop
 //win will crash here!

@@ -61,6 +61,11 @@ void PlatMainW::_extDataSetUp() {
     res_sdp.close();
     _sdpfile->close();
 
+    _txt_istyle.setColor(QPalette::WindowText, Qt::black);
+    _txt_estyle.setColor(QPalette::WindowText, Qt::darkRed);
+    _txt_sstyle.setColor(QPalette::WindowText, Qt::darkGreen);
+    _txt_wstyle.setColor(QPalette::WindowText, Qt::darkYellow);
+
     return;
 }
 
@@ -115,16 +120,14 @@ void PlatMainW::_initSipEvtListener() {
     _evtthr = new QThread();
     _evtworker = new SipEvtThr(_dftsip_port, _dftrtp_port, _localip);
     _evtworker->moveToThread(_evtthr);
-    connect(_evtworker, SIGNAL(err(QString)),
-            this, SLOT(evtLoopErr(QString)));
-    connect(_evtthr, SIGNAL(started()),
-            _evtworker, SLOT(evtloop()));
-    connect(_evtworker, SIGNAL(finished()),
-            _evtthr, SLOT(quit()));
-    connect(_evtworker, SIGNAL(finished()),
-            _evtworker, SLOT(deleteLater()));
-    connect(_evtworker, SIGNAL(finished()),
-            _evtthr, SLOT(deleteLater()));
+    connect(_evtworker, SIGNAL(err(QString)), this, SLOT(evtLoopErr(QString)));
+    connect(_evtworker, SIGNAL(info(QString)), this, SLOT(evtLoopInfo(QString)));
+    connect(_evtworker, SIGNAL(succ(QString)), this, SLOT(evtLoopSucc(QString)));
+    connect(_evtworker, SIGNAL(warn(QString)), this, SLOT(evtLoopWarn(QString)));
+    connect(_evtthr, SIGNAL(started()), _evtworker, SLOT(evtloop()));
+    connect(_evtworker, SIGNAL(finished()), _evtthr, SLOT(quit()));
+    connect(_evtworker, SIGNAL(finished()), _evtworker, SLOT(deleteLater()));
+    connect(_evtworker, SIGNAL(finished()), _evtthr, SLOT(deleteLater()));
     _evtthr->start();
 }
 
@@ -168,5 +171,21 @@ void PlatMainW::on_btn_stop_clicked() {
 }
 
 void PlatMainW::evtLoopErr(QString err) {
-    qDebug() << err;
+    ui->txt_debug->setPalette(_txt_estyle);
+    ui->txt_debug->append(err);
+}
+
+void PlatMainW::evtLoopInfo(QString info) {
+    ui->txt_debug->setPalette(_txt_istyle);
+    ui->txt_debug->append(info);
+}
+
+void PlatMainW::evtLoopWarn(QString warn) {
+    ui->txt_debug->setPalette(_txt_wstyle);
+    ui->txt_debug->append(warn);
+}
+
+void PlatMainW::evtLoopSucc(QString succ) {
+    ui->txt_debug->setPalette(_txt_sstyle);
+    ui->txt_debug->append(succ);
 }
