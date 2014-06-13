@@ -31,13 +31,14 @@ SipEvtThr::~SipEvtThr() {
         _data.local_ip = NULL;
     }
 }
-
+/**
+  @brief sip evt main loop
+*/
 void SipEvtThr::evtloop() {
-    //_exosipInit();
     while(true) {
         pevt = eXosip_event_wait(S, MS);
         if(pevt == NULL) {
-            qDebug() << "noen";
+            qDebug() << "none event";
             continue;
         }
         switch (pevt->type) {
@@ -46,37 +47,9 @@ void SipEvtThr::evtloop() {
             break;
         case EXOSIP_MESSAGE_NEW:
             if(MSG_IS_REGISTER(pevt->request)) {
-                osip_authorization_t *auth;
-                osip_message_get_authorization(pevt->request, 0, &auth);
-                if(auth != NULL) {
-                    int chk_ret = _chkRegInfo(auth->response, auth->username, "pass", auth->realm,
-                                auth->uri, osip_message_get_method(pevt->request),
-                                auth->nonce);
-                    if(chk_ret != 0) {
-                        qDebug() << "break on check";
-                        break;
-                    }
-                    chk_ret = _cmpRespMd5(auth->response, auth->username, "pass", auth->realm,
-                                auth->uri, osip_message_get_method(pevt->request),
-                                auth->nonce);
-                    if(chk_ret == 0) {
-                        eXosip_lock();
-                        _send_2xxReg(pevt);
-                        eXosip_unlock();
-                    } else {
-                        eXosip_lock();
-                        _send_401Reg(pevt,
-                                     _data.local_ip,  (char *)_data.nonce,
-                                     (char *)_data.alg, (char *)_data.auth_type);
-                        eXosip_unlock();
-                    }
-                } else {
-                    eXosip_lock();
-                    _send_401Reg(pevt,
-                       _data.local_ip,  (char *)_data.nonce, (char *)_data.alg, (char *)_data.auth_type);
-                    eXosip_unlock();
-                }
-
+                _prcsReg(pevt);
+            } else if(MSG_IS_NOTIFY(pevt->request)) {
+                _prcsNotify(pevt);
             }
             break;
         default:
@@ -128,11 +101,23 @@ int SipEvtThr::_send_2xxAns(eXosip_event_t *e) {
     if(e == NULL) {
         return -1;
     }
+    int b_ret = -1;
     osip_message_t *ans;
-    eXosip_message_build_answer(e->tid, 200, &ans);
-    eXosip_message_send_answer(e->tid, 200, ans);
+    b_ret = eXosip_message_build_answer(e->tid, 200, &ans);
+    if(b_ret != 0) {
+        qDebug() << "build ans 2xx failed " << b_ret;
+    }
+    /*if the req method is NOTIFY exosip 3.3 will not send 200 ok
+     *use exosip 3.6 will slove this prob!!*/
+    //osip_message_set_status_code(ans, 200);
+    b_ret = eXosip_message_send_answer(e->tid, 200, ans);
+    if(b_ret != 0) {
+        qDebug() << "send ans 2xx failed " << b_ret;
+    }
+
     return 0;
 }
+
 
 int SipEvtThr::_addQuote(char *str, int len, char *out, int olen) {
     if(str == NULL || len <= 0 || out == NULL || olen < len + 2) {
@@ -202,24 +187,79 @@ int SipEvtThr::_cmpRespMd5(char *resp, char *username, char *pass,
     return -1;
 }
 
-
-//move to main loop
-//win will crash here!
-/*
-int SipEvtThr::_exosipInit() {
-
-    int ret = eXosip_init();
-    if(ret != 0) {
-        emit err("init err");
-        return ret;
+void SipEvtThr::_prcsReg(eXosip_event_t *e) {
+    /*e is not null here!*/
+    osip_authorization_t *auth;
+    osip_message_get_authorization(e->request, 0, &auth);
+    if(auth != NULL) {
+        int chk_ret = _chkRegInfo(auth->response, auth->username, "pass", auth->realm,
+                                  auth->uri, osip_message_get_method(e->request),
+                                  auth->nonce);
+#if 0
+        qDebug() << auth->response;
+        qDebug() << auth->username;
+        qDebug() << auth->realm;
+        qDebug() << auth->uri;
+        qDebug() << osip_message_get_method(e->request);
+        qDebug() << auth->nonce;
+#endif
+        if(chk_ret != 0) {
+            return;
+        }
+        chk_ret = _cmpRespMd5(auth->response, auth->username, "pass", auth->realm,
+                              auth->uri, osip_message_get_method(pevt->request),
+                              auth->nonce);
+        if(chk_ret == 0) {
+            eXosip_lock();
+            _send_2xxAns(e);
+            eXosip_unlock();
+            return;
+        } else {
+            eXosip_lock();
+            _send_401Reg(e,
+                         _data.local_ip,  (char *)_data.nonce,
+                         (char *)_data.alg, (char *)_data.auth_type);
+            eXosip_unlock();
+            return;
+        }
+    } else {
+        eXosip_lock();
+        _send_401Reg(e,
+                     _data.local_ip,  (char *)_data.nonce, (char *)_data.alg, (char *)_data.auth_type);
+        eXosip_unlock();
+        return;
     }
-
-    ret = eXosip_listen_addr(IPPROTO_UDP, _localip, _dftsip_port, AF_INET, 0);
-    if(ret != 0) {
-        eXosip_quit();
-        emit err("listen bind err");
-        return ret;
-    }
-    return 0;
+    return;
 }
-*/
+
+void SipEvtThr::_prcsNotify(eXosip_event_t *e) {
+    /* !FIXME:
+     * need some verification here
+     */
+    osip_content_length_t *clen = NULL;
+    clen = osip_message_get_content_length(e->request);
+    if(clen != NULL) {
+        QString infos;
+        infos.append("Notify recived length is: ");
+        infos.append(clen->value);
+        emit info(infos);
+    }
+    osip_body_t *bd = NULL;
+    osip_body_init(&bd);
+    osip_message_get_body(e->request, 0, &bd);
+    if(bd != NULL) {
+        QString infos;
+        infos.append("Nofity recived msg is: ");
+        if(bd->body != NULL) {
+            infos.append(bd->body);
+        } else {
+            infos.append("null");
+        }
+        emit info(infos);
+    }
+    eXosip_lock();
+    _send_2xxAns(e);
+    eXosip_unlock();
+    return;
+
+}

@@ -22,13 +22,14 @@ signals:
 public slots:
     void evtloop();
 private:
-    //int _exosipInit();
     int _send_401Reg(eXosip_event_t *e, char *ipaddr, char *nonce, char *alg, char *auth_type);
     int _send_2xxAns(eXosip_event_t *e);
     int _addQuote(char *str, int len, char *out, int olen);
     QString _rmQuote(char *str);
     int _cmpRespMd5(char *resp, char *username, char *pass, char *relam, char *uri, char *method, char *nonce);
     int _chkRegInfo(char *resp, char *username, char *pass, char *relam, char *uri, char *method, char *nonce);
+    void _prcsReg(eXosip_event_t *e);
+    void _prcsNotify(eXosip_event_t *e);
 private:
     eXosip_event *pevt;
     enum {
