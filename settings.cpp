@@ -32,3 +32,25 @@ QMap<QString, QString> Settings::readGrp(QString grp) {
     }
     return retmap;
 }
+
+int Settings::writeGrp(QString grp, QString key, QString val) {
+    if(grp.isEmpty() || key.isEmpty() || val.isEmpty()) {
+        return -1;
+    }
+    if(this->fileName().isEmpty()) {
+        return -2;
+    }
+    QFile file;
+    file.setFileName(this->fileName());
+    if(file.open(QIODevice::ReadWrite | QIODevice::Unbuffered)) {
+        setIniCodec(QTextCodec::codecForName("UTF-8"));
+        /*if grp exist then force add*/
+        beginGroup(grp);
+        setValue(key, val);
+        endGroup();
+    }
+    if(file.isOpen()) {
+        file.close();
+    }
+    return 0;
+}

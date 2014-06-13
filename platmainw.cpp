@@ -34,6 +34,9 @@ PlatMainW::~PlatMainW()
     if(_localip != NULL) {
         delete []_localip;
     }
+    if(_usercode != NULL) {
+        delete []_usercode;
+    }
 }
 
 void PlatMainW::_extUISetUp() {
@@ -61,10 +64,6 @@ void PlatMainW::_extDataSetUp() {
     res_sdp.close();
     _sdpfile->close();
 
-    _txt_istyle.setColor(QPalette::WindowText, Qt::black);
-    _txt_estyle.setColor(QPalette::WindowText, Qt::darkRed);
-    _txt_sstyle.setColor(QPalette::WindowText, Qt::darkGreen);
-    _txt_wstyle.setColor(QPalette::WindowText, Qt::darkYellow);
 
     return;
 }
@@ -76,6 +75,7 @@ void PlatMainW::_initCfg() {
     _dftrtp_port = 0;
     _dftsip_port = 0;
     _localip = NULL;
+    _usercode = NULL;
 
     /*simple vilidate*/
     if(_setmap.count() > 0) {
@@ -91,9 +91,7 @@ void PlatMainW::_initCfg() {
                 _ipaddlen = _len;
 #endif
                 memset(_localip, 0, sizeof(char) * _len);
-                for(int cnt = 0; cnt < _len; cnt++) {
-                    _localip[cnt] = i.value().at(cnt).toLatin1();
-                }
+                strcpy(_localip, i.value().toStdString().c_str());
             } else if(QString::compare("sip_port", i.key(), Qt::CaseInsensitive) == 0) {
                 bool cvtflg = false;
                 _dftsip_port = i.value().toInt(&cvtflg);
@@ -106,9 +104,21 @@ void PlatMainW::_initCfg() {
                 if(!cvtflg) {
                     _dftrtp_port = 1576;
                 }
+            } else if(QString::compare("user_code", i.key(), Qt::CaseInsensitive) == 0) {
+                _usercode = new char[i.value().trimmed().length()];
+                if(_usercode == NULL) {
+                    exit(-1);
+                }
+                int _len = i.value().trimmed().length();
+#if defined(Q_OS_WIN)
+                _usercodelen = _len;
+#endif
+                memset(_usercode, 0, sizeof(char) * _len);
+                strcpy(_usercode, i.value().toStdString().c_str());
             }
         }
     }
+    qDebug() << _usercode;
     return;
 }
 
@@ -133,8 +143,10 @@ void PlatMainW::_initSipEvtListener() {
 
 int PlatMainW::_initExosip() {
 
+    /*for debug*/
     osip_trace_level_t t = TRACE_LEVEL7;
     TRACE_INITIALIZE(t, stdout);
+
     int ret = eXosip_init();
     if(ret != 0) {
         return -1;
@@ -144,6 +156,9 @@ int PlatMainW::_initExosip() {
      uglily fix*/
     if(_ipaddlen > 0 && (int)strlen(_localip) > _ipaddlen) {
         *(_localip + _ipaddlen) = '\0';
+    }
+    if(_usercodelen > 0 && (int)strlen(_usercode) > _usercodelen) {
+        *(_usercode) + _usercodelen = '\0';
     }
 #endif
     if(_localip == NULL && _dftsip_port == 0) {
@@ -163,7 +178,8 @@ int PlatMainW::_initExosip() {
 }
 
 void PlatMainW::on_btn_invate_clicked() {
-#if 1
+    _evtworker->send_INVATE();
+#if 0
     _videoview->setLocalsdp(_sdpfile->fileName());
     _videoview->start();
 #endif
@@ -174,21 +190,22 @@ void PlatMainW::on_btn_stop_clicked() {
 }
 
 void PlatMainW::evtLoopErr(QString err) {
-    ui->txt_debug->setPalette(_txt_estyle);
+    ui->txt_debug->setTextColor(Qt::darkRed);
     ui->txt_debug->append(err);
 }
 
 void PlatMainW::evtLoopInfo(QString info) {
-    ui->txt_debug->setPalette(_txt_istyle);
+    ui->txt_debug->setTextColor(Qt::black);
     ui->txt_debug->append(info);
 }
 
 void PlatMainW::evtLoopWarn(QString warn) {
-    ui->txt_debug->setPalette(_txt_wstyle);
+    ui->txt_debug->setTextColor(Qt::darkYellow);
     ui->txt_debug->append(warn);
 }
 
 void PlatMainW::evtLoopSucc(QString succ) {
-    ui->txt_debug->setPalette(_txt_sstyle);
+    ui->txt_debug->setTextColor(Qt::darkGreen);
     ui->txt_debug->append(succ);
+
 }

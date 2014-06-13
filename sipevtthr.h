@@ -6,6 +6,7 @@
 #include <QtNetwork/QHostAddress>
 #include <QMap>
 #include <QString>
+#include "settings.h"
 
 class SipEvtThr : public QObject
 {
@@ -21,6 +22,7 @@ signals:
     void succ(QString succ);
 public slots:
     void evtloop();
+    void send_INVATE();
 private:
     int _send_401Reg(eXosip_event_t *e, char *ipaddr, char *nonce, char *alg, char *auth_type);
     int _send_2xxAns(eXosip_event_t *e);
@@ -30,6 +32,8 @@ private:
     int _chkRegInfo(char *resp, char *username, char *pass, char *relam, char *uri, char *method, char *nonce);
     void _prcsReg(eXosip_event_t *e);
     void _prcsNotify(eXosip_event_t *e);
+    void _recContract(osip_contact_t *c);
+    QString _bdSDPMsg(char *oip, char *cip, int lport, int payload);
 private:
     eXosip_event *pevt;
     enum {
@@ -40,10 +44,12 @@ private:
         const char *nonce;
         const char *alg;
         const char *auth_type;
+        const char *dft_pass;
         char *local_ip;
         int sip_port;
         int rtp_port;
     }_data;
+    Settings *_uset;
 };
 
 inline int SipEvtThr::_chkRegInfo(char *resp, char *username,

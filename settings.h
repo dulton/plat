@@ -10,7 +10,7 @@ class Settings : public QSettings
 public:
     explicit Settings(QString filename, QObject *parent = 0);
     QMap <QString, QString> readGrp(QString grp);
-
+    int writeGrp(QString grp, QString key, QString val);
 signals:
 
 public slots:

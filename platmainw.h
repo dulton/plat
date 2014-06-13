@@ -19,7 +19,6 @@ class PlatMainW : public QMainWindow
 public:
     explicit PlatMainW(QWidget *parent = 0);
     ~PlatMainW();
-
 private slots:
     void on_btn_invate_clicked();
 
@@ -46,12 +45,11 @@ private:
     int _dftsip_port;
     int _dftrtp_port;
     char *_localip;
-    QPalette _txt_sstyle;
-    QPalette _txt_istyle;
-    QPalette _txt_estyle;
-    QPalette _txt_wstyle;
+    char *_usercode;
+
 #if defined(Q_OS_WIN)
     int _ipaddlen;
+    int _usercodelen;
 #endif
 };
 

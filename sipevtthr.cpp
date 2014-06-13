@@ -16,6 +16,7 @@ SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, QObject *parent
     _data.nonce = "9bd055";
     _data.auth_type = "Digest";
     _data.alg = "MD5";
+    _data.dft_pass = "pass";
     _data.local_ip = new char[strlen(local_ip)];
     if(_data.local_ip == NULL) {
         exit(-1);
@@ -23,6 +24,7 @@ SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, QObject *parent
     strcpy(_data.local_ip, local_ip);
     _data.sip_port = sip_port;
     _data.rtp_port = rtp_port;
+    _uset = new Settings("./uset.ini");
 }
 
 SipEvtThr::~SipEvtThr() {
@@ -59,6 +61,32 @@ void SipEvtThr::evtloop() {
         }
     }
 
+}
+
+/*
+Via: SIP/2.0/UDP 192.168.1.106:5060;rport;branch=z9hG4bK1307351893
+From: <sip:137111111111111111@192.168.1.106:5060>;tag=3606791516
+To: <sip:100010000004020001@192.168.1.168:5061>
+Call-ID: 1214567896
+CSeq: 20 INVITE
+Contact: <sip:137111111111111111@192.168.1.106:5060>
+Content-Type: application/SDP
+Max-forwards: 70
+User-agent: eXosip/3.6.0
+Subject: This
+Content-Length:   162
+v=0
+o=- 0 0 IN IP4 192.168.1.106
+s=-
+c=IN IP4 192.168.1.106
+m=video 1577 RTP/AVP 100
+a=rtpmap:100 HIK264/90000
+a=fmtp:100 CIF=1;4CIF=1;F=1;K=1
+a=recvonly
+*/
+void SipEvtThr::send_INVATE() {
+    osip_message_t *invate;
+    qDebug() << _bdSDPMsg("192.168.1.168", "192.168.1.168", 1577, 100);
 }
 
 int SipEvtThr::_send_401Reg(eXosip_event_t *e,
@@ -192,7 +220,8 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
     osip_authorization_t *auth;
     osip_message_get_authorization(e->request, 0, &auth);
     if(auth != NULL) {
-        int chk_ret = _chkRegInfo(auth->response, auth->username, "pass", auth->realm,
+        /*chk and cmp md5 use default pass word*/
+        int chk_ret = _chkRegInfo(auth->response, auth->username, (char *)_data.dft_pass, auth->realm,
                                   auth->uri, osip_message_get_method(e->request),
                                   auth->nonce);
 #if 0
@@ -206,13 +235,20 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
         if(chk_ret != 0) {
             return;
         }
-        chk_ret = _cmpRespMd5(auth->response, auth->username, "pass", auth->realm,
-                              auth->uri, osip_message_get_method(pevt->request),
+        chk_ret = _cmpRespMd5(auth->response, auth->username, (char *)_data.dft_pass, auth->realm,
+                              auth->uri, osip_message_get_method(e->request),
                               auth->nonce);
         if(chk_ret == 0) {
             eXosip_lock();
             _send_2xxAns(e);
             eXosip_unlock();
+
+            QString succs = QString ("%1 %2 %3").arg("client:").arg(auth->username).arg(" reg success!");
+            emit succ(succs);
+
+            osip_contact_t *ctinfo = NULL;
+            osip_message_get_contact(e->request, 0, &ctinfo);
+            _recContract(ctinfo);
             return;
         } else {
             eXosip_lock();
@@ -263,3 +299,31 @@ void SipEvtThr::_prcsNotify(eXosip_event_t *e) {
     return;
 
 }
+
+void SipEvtThr::_recContract(osip_contact_t *c) {
+    if(c != NULL && c->url != NULL &&
+            c->url->username != NULL && c->url->host != NULL) {
+        _uset->writeGrp(c->url->username, "pass", _data.dft_pass);
+        _uset->writeGrp(c->url->username, "ip_addr", c->url->host);
+    }
+    return;
+}
+
+QString SipEvtThr::_bdSDPMsg(char *oip, char *cip, int lport, int payload) {
+    QString retStr;
+    if(oip != NULL && oip[0] != '\0' &&
+       cip != NULL && cip[0] != '\0' &&
+       lport > 0 && payload > 0 && payload <= 100) {
+        retStr.append("v=0\r\n");
+        retStr.append(QString("o=- 0 0 IN IP4 %1\r\n").arg(oip));
+        retStr.append("s=-\r\n");
+        retStr.append(QString("c=IN IP4 %1\r\n").arg(cip));
+        retStr.append(QString("m=video %1 RTP/AVP %2\r\n").arg(lport).arg(payload));
+        retStr.append(QString("a=rtpmap:%1 H.264/90000\r\n").arg(payload));
+        retStr.append(QString("a=fmtp:%1 CIF=1\r\n").arg(payload));
+        retStr.append("a=sendrecv\r\n");
+    }
+    return retStr;
+}
+
+
