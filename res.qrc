@@ -2,4 +2,15 @@
     <qresource prefix="/sdp">
         <file>cat.sdp</file>
     </qresource>
+    <qresource prefix="/icons">
+        <file>icons/up_right.png</file>
+        <file>icons/up_left.png</file>
+        <file>icons/up.png</file>
+        <file>icons/right.png</file>
+        <file>icons/left.png</file>
+        <file>icons/down_right.png</file>
+        <file>icons/down_left.png</file>
+        <file>icons/down.png</file>
+        <file>icons/app_icon.png</file>
+    </qresource>
 </RCC>

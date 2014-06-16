@@ -12,7 +12,7 @@ class SipEvtThr : public QObject
 {
     Q_OBJECT
 public:
-    explicit SipEvtThr(int sip_port, int rtp_port, char *local_ip, QObject *parent = 0);
+    explicit SipEvtThr(int sip_port, int rtp_port, char *local_ip, char *user_code, QObject *parent = 0);
     ~SipEvtThr();
 signals:
     void finished();
@@ -34,6 +34,7 @@ private:
     void _prcsNotify(eXosip_event_t *e);
     void _recContract(osip_contact_t *c);
     QString _bdSDPMsg(char *oip, char *cip, int lport, int payload);
+    QString _bdFTC(char *code, char *ip);
 private:
     eXosip_event *pevt;
     enum {
@@ -45,6 +46,7 @@ private:
         const char *alg;
         const char *auth_type;
         const char *dft_pass;
+        char *user_code;
         char *local_ip;
         int sip_port;
         int rtp_port;

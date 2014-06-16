@@ -47,7 +47,7 @@
      </property>
      <layout class="QGridLayout" name="glay_ptz">
       <item row="1" column="2">
-       <widget class="QPushButton" name="b_left">
+       <widget class="QPushButton" name="b_right">
         <property name="minimumSize">
          <size>
           <width>30</width>
@@ -104,7 +104,7 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QPushButton" name="b_right">
+       <widget class="QPushButton" name="b_left">
         <property name="minimumSize">
          <size>
           <width>30</width>
@@ -228,7 +228,7 @@
     <property name="geometry">
      <rect>
       <x>660</x>
-      <y>250</y>
+      <y>450</y>
       <width>181</width>
       <height>141</height>
      </rect>

@@ -11,7 +11,7 @@
 #endif
 
 
-SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, QObject *parent) :
+SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, char *user_code, QObject *parent) :
     QObject(parent){
     _data.nonce = "9bd055";
     _data.auth_type = "Digest";
@@ -22,6 +22,13 @@ SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, QObject *parent
         exit(-1);
     }
     strcpy(_data.local_ip, local_ip);
+
+    _data.user_code = new char[strlen(user_code)];
+    if(_data.user_code == NULL) {
+        exit(-1);
+    }
+    strcpy(_data.user_code, user_code);
+
     _data.sip_port = sip_port;
     _data.rtp_port = rtp_port;
     _uset = new Settings("./uset.ini");
@@ -86,7 +93,12 @@ a=recvonly
 */
 void SipEvtThr::send_INVATE() {
     osip_message_t *invate;
+
     qDebug() << _bdSDPMsg("192.168.1.168", "192.168.1.168", 1577, 100);
+    qDebug() << "build ret " << eXosip_call_build_initial_invite(&invate,
+                                "sip:100010000004020001@192.168.1.168",
+                                "sip:137111111111111111@192.168.1.103", NULL, "THIS");
+    eXosip_call_send_initial_invite(invate);
 }
 
 int SipEvtThr::_send_401Reg(eXosip_event_t *e,
@@ -324,6 +336,20 @@ QString SipEvtThr::_bdSDPMsg(char *oip, char *cip, int lport, int payload) {
         retStr.append("a=sendrecv\r\n");
     }
     return retStr;
+}
+
+QString SipEvtThr::_bdFTC(char *code, char *ip) {
+    //"sip:100010000004020001@192.168.1.168"
+    QString hdr = "sip:";
+    if(code != NULL && code[0] != '\0' &&
+       ip != NULL && ip[0] != '\0') {
+        hdr.append(code);
+        hdr.append("@");
+        hdr.append(ip);
+        return hdr;
+    }
+    hdr.clear();
+    return hdr;
 }
 
 

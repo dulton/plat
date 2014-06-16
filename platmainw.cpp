@@ -43,6 +43,17 @@ void PlatMainW::_extUISetUp() {
     _videoview = new VideoView(ui->videow);
     QSize vsize(ui->videow->size());
     _videoview->setSize(vsize);
+
+    /*set icon*/
+    ui->b_left->setIcon(QIcon(":/icons/icons/left.png"));
+    ui->b_right->setIcon(QIcon(":/icons/icons/right.png"));
+    ui->b_up->setIcon(QIcon(":/icons/icons/up.png"));
+    ui->b_down->setIcon(QIcon(":/icons/icons/down.png"));
+    ui->b_left_up->setIcon(QIcon(":/icons/icons/up_left.png"));
+    ui->b_left_down->setIcon(QIcon(":/icons/icons/down_left.png"));
+    ui->b_right_up->setIcon(QIcon(":/icons/icons/up_right.png"));
+    ui->b_right_down->setIcon(QIcon(":/icons/icons/down_right.png"));
+
 }
 
 void PlatMainW::_extDataSetUp() {
@@ -128,7 +139,7 @@ void PlatMainW::_initSipEvtListener() {
         exit(-1);
     }
     _evtthr = new QThread();
-    _evtworker = new SipEvtThr(_dftsip_port, _dftrtp_port, _localip);
+    _evtworker = new SipEvtThr(_dftsip_port, _dftrtp_port, _localip, _usercode);
     _evtworker->moveToThread(_evtthr);
     connect(_evtworker, SIGNAL(err(QString)), this, SLOT(evtLoopErr(QString)));
     connect(_evtworker, SIGNAL(info(QString)), this, SLOT(evtLoopInfo(QString)));
