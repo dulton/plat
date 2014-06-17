@@ -92,27 +92,6 @@ void SipEvtThr::evtloop() {
 
 }
 
-/*
-Via: SIP/2.0/UDP 192.168.1.106:5060;rport;branch=z9hG4bK1307351893
-From: <sip:137111111111111111@192.168.1.106:5060>;tag=3606791516
-To: <sip:100010000004020001@192.168.1.168:5061>
-Call-ID: 1214567896
-CSeq: 20 INVITE
-Contact: <sip:137111111111111111@192.168.1.106:5060>
-Content-Type: application/SDP
-Max-forwards: 70
-User-agent: eXosip/3.6.0
-Subject: This
-Content-Length:   162
-v=0
-o=- 0 0 IN IP4 192.168.1.106
-s=-
-c=IN IP4 192.168.1.106
-m=video 1577 RTP/AVP 100
-a=rtpmap:100 HIK264/90000
-a=fmtp:100 CIF=1;4CIF=1;F=1;K=1
-a=recvonly
-*/
 /**
   @brief read the cfg file get info then send INVITE to remote
          for single client invate video test
@@ -160,6 +139,13 @@ void SipEvtThr::send_INVITE() {
                               strlen(sdp_msg.toStdString().c_str()));
         eXosip_call_send_initial_invite(invate);
     }
+}
+
+/**
+   @brief send buy to terminate a video call
+*/
+void SipEvtThr::send_BYE() {
+
 }
 
 int SipEvtThr::_send_401Reg(eXosip_event_t *e,
@@ -503,5 +489,3 @@ QString SipEvtThr::_readXmlNOTIFY(char *msg) {
     return ret;
 
 }
-
-

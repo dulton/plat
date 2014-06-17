@@ -84,6 +84,7 @@ DEFINES += QT_5
 DEFINES += ENABLE_TRACE
 
 OTHER_FILES += \
-    plat.ini
+    plat.ini \
+    tmplog.txt
 
 

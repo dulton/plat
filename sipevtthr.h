@@ -25,6 +25,7 @@ signals:
 public slots:
     void evtloop();
     void send_INVITE();
+    void send_BYE();
 private:
     int _send_401Reg(eXosip_event_t *e, char *ipaddr, char *nonce, char *alg, char *auth_type);
     int _send_2xxAns(eXosip_event_t *e);
