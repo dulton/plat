@@ -91,14 +91,41 @@ a=rtpmap:100 HIK264/90000
 a=fmtp:100 CIF=1;4CIF=1;F=1;K=1
 a=recvonly
 */
+/**
+  @brief read the cfg file get info then send INVATE to remote
+         for single client invate video test
+*/
 void SipEvtThr::send_INVATE() {
-    osip_message_t *invate;
 
-    qDebug() << _bdSDPMsg("192.168.1.168", "192.168.1.168", 1577, 100);
-    qDebug() << "build ret " << eXosip_call_build_initial_invite(&invate,
-                                "sip:100010000004020001@192.168.1.168",
-                                "sip:137111111111111111@192.168.1.103", NULL, "THIS");
-    eXosip_call_send_initial_invite(invate);
+    QStringList clist = _uset->childGroups();
+    if(clist.count() >= 1) {
+        QString inv_to;
+        QString inv_from;
+        QString remote_ip;
+        QString dev_code;
+        /*just pick the first one*/
+        dev_code = clist.at(0);
+        if(dev_code.isEmpty()) {
+            qDebug() << "grp is empty pls chk the record function";
+            return;
+        }
+        remote_ip = _uset->readGKV(dev_code, "ip_addr");
+        inv_to = _bdFTC((char *)dev_code.toStdString().c_str(),
+                        (char *)remote_ip.toStdString().c_str());
+        inv_from = _bdFTC(_data.user_code, _data.local_ip);
+
+#if 0
+        qDebug() << inv_to;
+        qDebug() << inv_from;
+#endif
+        osip_message_t *invate;
+        qDebug() << _bdSDPMsg("192.168.1.168", "192.168.1.168", 1577, 100);
+        qDebug() << "build ret " << eXosip_call_build_initial_invite(&invate, inv_to.toStdString().c_str(),
+                                                                     inv_from.toStdString().c_str(),
+                                                                     NULL,
+                                                                     "THIS");
+        eXosip_call_send_initial_invite(invate);
+    }
 }
 
 int SipEvtThr::_send_401Reg(eXosip_event_t *e,

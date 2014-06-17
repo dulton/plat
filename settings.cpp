@@ -54,3 +54,28 @@ int Settings::writeGrp(QString grp, QString key, QString val) {
     }
     return 0;
 }
+
+QString Settings::readGKV(QString grp, QString key) {
+    QString ret;
+    ret.clear();
+    if(this->fileName().isEmpty()) {
+        return ret;
+    }
+    if(grp.isEmpty() || key.isEmpty()) {
+        return ret;
+    }
+    QFile file;
+    file.setFileName(this->fileName());
+    if(file.open(QIODevice::ReadOnly)) {
+        setIniCodec(QTextCodec::codecForName("UTF-8"));
+        beginGroup(grp);
+        if(contains(key)) {
+            return value(key).toString();
+        }
+        endGroup();
+    }
+    if(file.isOpen()) {
+        file.close();
+    }
+    return ret;
+}
