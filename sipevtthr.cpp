@@ -84,8 +84,11 @@ void SipEvtThr::evtloop() {
             }
             break;
         default:
-            qDebug() << "default";
-            qDebug() << pevt->type;
+            {
+                QString dft_str("recive none process msg: Type ");
+                dft_str.append(QString::number(pevt->type));
+                emit warn(dft_str);
+            }
             break;
         }
     }
@@ -324,6 +327,8 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
                          _data.local_ip,  (char *)_data.nonce,
                          (char *)_data.alg, (char *)_data.auth_type);
             eXosip_unlock();
+            QString infos("send 401 Unauth to client");
+            emit info(infos);
             return;
         }
     } else {
@@ -331,6 +336,8 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
         _send_401Reg(e,
                      _data.local_ip,  (char *)_data.nonce, (char *)_data.alg, (char *)_data.auth_type);
         eXosip_unlock();
+        QString infos("send 401 Unauth to client");
+        emit info(infos);
         return;
     }
     return;
