@@ -1,6 +1,9 @@
 #include "sipevtthr.h"
 #include <QDebug>
 #include <QCryptographicHash>
+#include <QXmlStreamReader>
+#include <QXmlStreamAttribute>
+#include <QXmlStreamAttributes>
 
 #if defined(Q_OS_WIN)
 #include <winsock2.h>
@@ -17,6 +20,8 @@ SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, char *user_code
     _data.auth_type = "Digest";
     _data.alg = "MD5";
     _data.dft_pass = "pass";
+    _data.dft_sc_type = "application/sdp";
+    _data.rtp_playload = 100;
     _data.local_ip = new char[strlen(local_ip)];
     if(_data.local_ip == NULL) {
         exit(-1);
@@ -61,6 +66,23 @@ void SipEvtThr::evtloop() {
                 _prcsNotify(pevt);
             }
             break;
+        case EXOSIP_CALL_ANSWERED:
+            if(MSG_IS_INVITE(pevt->request)) {
+                _prcsINVITE(pevt);
+            }
+            break;
+        case EXOSIP_CALL_PROCEEDING:
+            {
+                QString succs("remote proceeding video call");
+                emit succ(succs);
+            }
+            break;
+        case EXOSIP_CALL_RINGING:
+            {
+                QString succs("recive call ringing msg");
+                emit succ(succs);
+            }
+            break;
         default:
             qDebug() << "default";
             qDebug() << pevt->type;
@@ -92,10 +114,10 @@ a=fmtp:100 CIF=1;4CIF=1;F=1;K=1
 a=recvonly
 */
 /**
-  @brief read the cfg file get info then send INVATE to remote
+  @brief read the cfg file get info then send INVITE to remote
          for single client invate video test
 */
-void SipEvtThr::send_INVATE() {
+void SipEvtThr::send_INVITE() {
 
     QStringList clist = _uset->childGroups();
     if(clist.count() >= 1) {
@@ -103,6 +125,7 @@ void SipEvtThr::send_INVATE() {
         QString inv_from;
         QString remote_ip;
         QString dev_code;
+        int remote_port;
         /*just pick the first one*/
         dev_code = clist.at(0);
         if(dev_code.isEmpty()) {
@@ -110,20 +133,31 @@ void SipEvtThr::send_INVATE() {
             return;
         }
         remote_ip = _uset->readGKV(dev_code, "ip_addr");
+        bool f;
+        remote_port = _uset->readGKV(dev_code, "port").toInt(&f);
+        if(!f) {
+            remote_port = 5061;
+        }
         inv_to = _bdFTC((char *)dev_code.toStdString().c_str(),
-                        (char *)remote_ip.toStdString().c_str());
-        inv_from = _bdFTC(_data.user_code, _data.local_ip);
+                        (char *)remote_ip.toStdString().c_str(), remote_port);
+        inv_from = _bdFTC(_data.user_code, _data.local_ip, _data.sip_port);
 
 #if 0
         qDebug() << inv_to;
         qDebug() << inv_from;
 #endif
         osip_message_t *invate;
-        qDebug() << _bdSDPMsg("192.168.1.168", "192.168.1.168", 1577, 100);
-        qDebug() << "build ret " << eXosip_call_build_initial_invite(&invate, inv_to.toStdString().c_str(),
+        /*this sdp msg may not right but
+         *plat will not use this sdp so dosen't matter*/
+        QString sdp_msg = _bdSDPMsg(_data.local_ip, _data.local_ip, _data.sip_port, _data.rtp_playload);
+        int b_ret = eXosip_call_build_initial_invite(&invate, inv_to.toStdString().c_str(),
                                                                      inv_from.toStdString().c_str(),
                                                                      NULL,
                                                                      "THIS");
+        qDebug() << "build ret for init invate" << b_ret;
+        osip_message_set_content_type(invate, _data.dft_sc_type);
+        osip_message_set_body(invate, sdp_msg.toStdString().c_str(),
+                              strlen(sdp_msg.toStdString().c_str()));
         eXosip_call_send_initial_invite(invate);
     }
 }
@@ -272,22 +306,31 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
         qDebug() << auth->nonce;
 #endif
         if(chk_ret != 0) {
+            QString warns_s("recv reg msg REG INFO not complete!");
+            emit warn(warns_s);
             return;
         }
         chk_ret = _cmpRespMd5(auth->response, auth->username, (char *)_data.dft_pass, auth->realm,
                               auth->uri, osip_message_get_method(e->request),
                               auth->nonce);
         if(chk_ret == 0) {
+            QString succs("MD5 chk success!");
+            emit succ(succs);
+
             eXosip_lock();
             _send_2xxAns(e);
             eXosip_unlock();
 
-            QString succs = QString ("%1 %2 %3").arg("client:").arg(auth->username).arg(" reg success!");
+            succs.clear();
+            succs = QString ("%1 %2 %3").arg("client:").arg(auth->username).arg(" reg success!");
             emit succ(succs);
 
             osip_contact_t *ctinfo = NULL;
             osip_message_get_contact(e->request, 0, &ctinfo);
-            _recContract(ctinfo);
+            osip_via_t *viainfo = NULL;
+            osip_message_get_via(e->request, 0, &viainfo);
+
+            _recContractVia(ctinfo, viainfo);
             return;
         } else {
             eXosip_lock();
@@ -327,6 +370,8 @@ void SipEvtThr::_prcsNotify(eXosip_event_t *e) {
         infos.append("Nofity recived msg is: ");
         if(bd->body != NULL) {
             infos.append(bd->body);
+            QString dev_s = _readXmlNOTIFY(bd->body);
+            emit update_ResDisp(dev_s);
         } else {
             infos.append("null");
         }
@@ -339,13 +384,58 @@ void SipEvtThr::_prcsNotify(eXosip_event_t *e) {
 
 }
 
-void SipEvtThr::_recContract(osip_contact_t *c) {
+void SipEvtThr::_prcsINVITE(eXosip_event_t *e) {
+    osip_content_type_t *ct = NULL;
+    ct = osip_message_get_content_type(e->request);
+    if(_chkSipContentType(ct, E_SDP) == 0) {
+        eXosip_lock();
+        /*send ack*/
+        osip_message_t *inv_ack;
+        int b_ret = -1;
+        b_ret = eXosip_call_build_ack(e->did, &inv_ack);
+        qDebug() << "ack build ret :" << b_ret;
+        b_ret = eXosip_call_send_ack(e->did, inv_ack);
+        qDebug() << "ack send ret :" << b_ret;
+        eXosip_unlock();
+        /*start waiting rtp stream here!*/
+        emit rtp_start();
+        QString succs("send ack to client, wait for video!");
+        emit succ(succs);
+    }
+    qDebug() << "chk content failed" << ct->type << "/" <<ct->subtype;
+
+    //QString succs("recived 180 Ring.. wait for 200 OK!");
+    //emit succ(succs);
+    return;
+}
+
+void SipEvtThr::_recContractVia(osip_contact_t *c, osip_via_t *v) {
     if(c != NULL && c->url != NULL &&
-            c->url->username != NULL && c->url->host != NULL) {
+       c->url->username != NULL && c->url->host != NULL &&
+       v != NULL && v->port != NULL) {
         _uset->writeGrp(c->url->username, "pass", _data.dft_pass);
         _uset->writeGrp(c->url->username, "ip_addr", c->url->host);
+        _uset->writeGrp(c->url->username, "port", v->port);
     }
     return;
+}
+
+int SipEvtThr::_chkSipContentType(osip_content_type_t *t, int type) {
+    if(t == NULL || t->subtype == NULL || t->type == NULL) {
+        return -1;
+    }
+    if(strncasecmp(t->type, "application", strlen("application")) == 0) {
+        if(type == E_SDP) {
+            if(strncasecmp(t->subtype, "sdp", strlen("sdp")) == 0) {
+                return 0;
+            }
+        } else if(type == E_XML) {
+            if(strncasecmp(t->subtype, "xml", strlen("xml")) == 0) {
+                return 0;
+            }
+        }
+    }
+    return 1;
 }
 
 QString SipEvtThr::_bdSDPMsg(char *oip, char *cip, int lport, int payload) {
@@ -365,18 +455,53 @@ QString SipEvtThr::_bdSDPMsg(char *oip, char *cip, int lport, int payload) {
     return retStr;
 }
 
-QString SipEvtThr::_bdFTC(char *code, char *ip) {
+QString SipEvtThr::_bdFTC(char *code, char *ip, int port) {
     //"sip:100010000004020001@192.168.1.168"
     QString hdr = "sip:";
     if(code != NULL && code[0] != '\0' &&
-       ip != NULL && ip[0] != '\0') {
+       ip != NULL && ip[0] != '\0' && port > 0) {
         hdr.append(code);
         hdr.append("@");
         hdr.append(ip);
+        hdr.append(":");
+        hdr.append(QString::number(port));
         return hdr;
     }
     hdr.clear();
     return hdr;
+}
+
+QString SipEvtThr::_readXmlNOTIFY(char *msg) {
+    QString ret;
+    if(msg == NULL || msg[0] == '\0') {
+        return ret;
+    }
+    QXmlStreamReader reader(msg);
+
+    while(!reader.atEnd() && !reader.hasError()) {
+        reader.readNext();
+        if(reader.isStartElement()) {
+            if(reader.name() == "Code") {
+                ret.append("Code: " + reader.readElementText());
+                ret.append("\n");
+                continue;
+            }
+            QXmlStreamAttributes attrs;
+            QXmlStreamAttribute a;
+            attrs = reader.attributes();
+            foreach (a, attrs) {
+                ret.append(a.name().toString() + ": " + a.value().toString());
+                ret.append("\n");
+            }
+            ret.append("\n");
+        }
+    }
+
+    if(reader.hasError()) {
+        qDebug() << reader.errorString();
+    }
+    return ret;
+
 }
 
 

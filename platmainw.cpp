@@ -145,6 +145,8 @@ void PlatMainW::_initSipEvtListener() {
     connect(_evtworker, SIGNAL(info(QString)), this, SLOT(evtLoopInfo(QString)));
     connect(_evtworker, SIGNAL(succ(QString)), this, SLOT(evtLoopSucc(QString)));
     connect(_evtworker, SIGNAL(warn(QString)), this, SLOT(evtLoopWarn(QString)));
+    connect(_evtworker, SIGNAL(rtp_start()), this, SLOT(startRecvRtp()));
+    connect(_evtworker, SIGNAL(update_ResDisp(QString)), this, SLOT(updateResDisp(QString)));
     connect(_evtthr, SIGNAL(started()), _evtworker, SLOT(evtloop()));
     connect(_evtworker, SIGNAL(finished()), _evtthr, SLOT(quit()));
     connect(_evtworker, SIGNAL(finished()), _evtworker, SLOT(deleteLater()));
@@ -189,7 +191,7 @@ int PlatMainW::_initExosip() {
 }
 
 void PlatMainW::on_btn_invate_clicked() {
-    _evtworker->send_INVATE();
+    _evtworker->send_INVITE();
 #if 0
     _videoview->setLocalsdp(_sdpfile->fileName());
     _videoview->start();
@@ -219,4 +221,18 @@ void PlatMainW::evtLoopSucc(QString succ) {
     ui->txt_debug->setTextColor(Qt::darkGreen);
     ui->txt_debug->append(succ);
 
+}
+
+void PlatMainW::startRecvRtp() {
+    _videoview->setLocalsdp(_sdpfile->fileName());
+    _videoview->start();
+}
+
+void PlatMainW::updateResDisp(QString s) {
+    if(s.isEmpty()) {
+        return;
+    }
+    ui->txtDev->clear();
+    ui->txtDev->setTextColor(Qt::darkBlue);
+    ui->txtDev->append(s);
 }

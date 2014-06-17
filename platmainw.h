@@ -28,6 +28,8 @@ private slots:
     void evtLoopInfo(QString info);
     void evtLoopWarn(QString warn);
     void evtLoopSucc(QString succ);
+    void startRecvRtp();
+    void updateResDisp(QString s);
 private:
     void _extUISetUp();
     void _extDataSetUp();

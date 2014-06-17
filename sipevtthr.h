@@ -20,9 +20,11 @@ signals:
     void info(QString info);
     void warn(QString warn);
     void succ(QString succ);
+    void rtp_start();
+    void update_ResDisp(QString s);
 public slots:
     void evtloop();
-    void send_INVATE();
+    void send_INVITE();
 private:
     int _send_401Reg(eXosip_event_t *e, char *ipaddr, char *nonce, char *alg, char *auth_type);
     int _send_2xxAns(eXosip_event_t *e);
@@ -32,24 +34,33 @@ private:
     int _chkRegInfo(char *resp, char *username, char *pass, char *relam, char *uri, char *method, char *nonce);
     void _prcsReg(eXosip_event_t *e);
     void _prcsNotify(eXosip_event_t *e);
-    void _recContract(osip_contact_t *c);
+    void _prcsINVITE(eXosip_event_t *e);
+    void _recContractVia(osip_contact_t *c, osip_via_t *v);
+    int _chkSipContentType(osip_content_type_t *t, int type);
     QString _bdSDPMsg(char *oip, char *cip, int lport, int payload);
-    QString _bdFTC(char *code, char *ip);
+    QString _bdFTC(char *code, char *ip, int port);
+    QString _readXmlNOTIFY(char *msg);
 private:
     eXosip_event *pevt;
     enum {
         MS = 200,
         S = 0
     };
+    enum {
+        E_SDP = 0,
+        E_XML
+    };
     struct WData {
         const char *nonce;
         const char *alg;
         const char *auth_type;
         const char *dft_pass;
+        const char *dft_sc_type;
         char *user_code;
         char *local_ip;
         int sip_port;
         int rtp_port;
+        int rtp_playload;
     }_data;
     Settings *_uset;
 };
