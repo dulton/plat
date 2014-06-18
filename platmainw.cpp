@@ -178,7 +178,7 @@ int PlatMainW::_initExosip() {
         *(_localip + _ipaddlen) = '\0';
     }
     if(_usercodelen > 0 && (int)strlen(_usercode) > _usercodelen) {
-        *(_usercode) + _usercodelen = '\0';
+        *(_usercode + _usercodelen) = '\0';
     }
 #endif
     if(_localip == NULL && _dftsip_port == 0) {

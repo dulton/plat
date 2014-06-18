@@ -5,10 +5,12 @@
 #include <QXmlStreamAttribute>
 #include <QXmlStreamAttributes>
 #include <QTime>
+#include <QStringList>
 
 #if defined(Q_OS_WIN)
 #include <winsock2.h>
 #include "eXosip2/eXosip.h"
+#define strncasecmp strnicmp
 #elif defined(Q_OS_LINUX)
 #include <netinet/in.h>
 #include <eXosip2/eXosip.h>
