@@ -42,7 +42,10 @@ VideoView::VideoView(QWidget *parent) :
 }
 
 VideoView::~VideoView() {
+    delete m_videoFiltersModel;
+    libvlc_media_player_release(m_vlcMediaPlayer);
     libvlc_release(m_vlcInstance);
+
 }
 
 void VideoView::start() {
