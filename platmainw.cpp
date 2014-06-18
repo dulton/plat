@@ -44,7 +44,7 @@ void PlatMainW::_extUISetUp() {
     QSize vsize(ui->videow->size());
     _videoview->setSize(vsize);
 
-#if 0
+#if 1
     /*for debug*/
     _videoview->setHidden(true);
 #endif
