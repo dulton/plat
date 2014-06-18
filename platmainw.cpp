@@ -207,6 +207,7 @@ void PlatMainW::on_btn_invate_clicked() {
 
 void PlatMainW::on_btn_stop_clicked() {
     _evtworker->send_BYE();
+    _videoview->stop();
 }
 
 void PlatMainW::evtLoopErr(QString err) {
