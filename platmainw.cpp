@@ -25,6 +25,7 @@ PlatMainW::PlatMainW(QWidget *parent) :
 PlatMainW::~PlatMainW()
 {
     delete ui;
+    eXosip_quit();
     if(_sdpfile != NULL) {
         if(_sdpfile->isOpen()) {
             _sdpfile->close();
@@ -100,7 +101,7 @@ void PlatMainW::_initCfg() {
         QMap<QString, QString>::const_iterator i;
         for(i = _setmap.constBegin(); i != _setmap.constEnd(); ++i) {
             if(QString::compare("local_ip", i.key(), Qt::CaseInsensitive) == 0) {
-                _localip = new char[i.value().trimmed().length()];
+                _localip = new char[i.value().trimmed().length() + 1];
                 if(_localip == NULL) {
                     exit(-1);
                 }
@@ -123,7 +124,7 @@ void PlatMainW::_initCfg() {
                     _dftrtp_port = 1576;
                 }
             } else if(QString::compare("user_code", i.key(), Qt::CaseInsensitive) == 0) {
-                _usercode = new char[i.value().trimmed().length()];
+                _usercode = new char[i.value().trimmed().length() + 1];
                 if(_usercode == NULL) {
                     exit(-1);
                 }
