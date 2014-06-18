@@ -44,6 +44,11 @@ void PlatMainW::_extUISetUp() {
     QSize vsize(ui->videow->size());
     _videoview->setSize(vsize);
 
+#if 0
+    /*for debug*/
+    _videoview->setHidden(true);
+#endif
+
     /*set icon*/
     ui->b_left->setIcon(QIcon(":/icons/icons/left.png"));
     ui->b_right->setIcon(QIcon(":/icons/icons/right.png"));
@@ -54,6 +59,8 @@ void PlatMainW::_extUISetUp() {
     ui->b_right_up->setIcon(QIcon(":/icons/icons/up_right.png"));
     ui->b_right_down->setIcon(QIcon(":/icons/icons/down_right.png"));
 
+    ui->btn_invate->setEnabled(false);
+    ui->btn_stop->setEnabled(false);
 }
 
 void PlatMainW::_extDataSetUp() {
@@ -199,7 +206,7 @@ void PlatMainW::on_btn_invate_clicked() {
 }
 
 void PlatMainW::on_btn_stop_clicked() {
-
+    _evtworker->send_BYE();
 }
 
 void PlatMainW::evtLoopErr(QString err) {
@@ -231,6 +238,12 @@ void PlatMainW::startRecvRtp() {
 void PlatMainW::updateResDisp(QString s) {
     if(s.isEmpty()) {
         return;
+    }
+    if(ui->btn_invate->isEnabled() == false) {
+        ui->btn_invate->setEnabled(true);
+    }
+    if(ui->btn_stop->isEnabled() == false) {
+        ui->btn_stop->setEnabled(true);
     }
     ui->txtDev->clear();
     ui->txtDev->setTextColor(Qt::darkBlue);

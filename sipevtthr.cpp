@@ -4,6 +4,7 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamAttribute>
 #include <QXmlStreamAttributes>
+#include <QTime>
 
 #if defined(Q_OS_WIN)
 #include <winsock2.h>
@@ -23,6 +24,8 @@ SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, char *user_code
     _data.dft_sc_type = "application/sdp";
     _data.rtp_playload = 100;
     _data.local_ip = new char[strlen(local_ip)];
+    _callinfo.cid = -1;
+    _callinfo.did = -1;
     if(_data.local_ip == NULL) {
         exit(-1);
     }
@@ -49,6 +52,7 @@ SipEvtThr::~SipEvtThr() {
   @brief sip evt main loop
 */
 void SipEvtThr::evtloop() {
+    QString msg2c;
     while(true) {
         pevt = eXosip_event_wait(S, MS);
         if(pevt == NULL) {
@@ -73,21 +77,38 @@ void SipEvtThr::evtloop() {
             break;
         case EXOSIP_CALL_PROCEEDING:
             {
-                QString succs("remote proceeding video call");
-                emit succ(succs);
+                msg2c.clear();
+                msg2c = _fmtMsg("remote proceeding video call");
+                emit succ(msg2c);
             }
             break;
         case EXOSIP_CALL_RINGING:
             {
-                QString succs("recive call ringing msg");
-                emit succ(succs);
+                msg2c.clear();
+                msg2c = _fmtMsg("recive call ringing msg");
+                emit succ(msg2c);
+            }
+            break;
+        case EXOSIP_CALL_MESSAGE_ANSWERED:
+            {
+                msg2c.clear();
+                msg2c = _fmtMsg("revive client 200 ok msg");
+                emit succ(msg2c);
+            }
+            break;
+        case EXOSIP_CALL_RELEASED:
+            {
+                msg2c.clear();
+                msg2c = _fmtMsg("call release success!");
+                emit succ(msg2c);
             }
             break;
         default:
             {
-                QString dft_str("recive none process msg: Type ");
-                dft_str.append(QString::number(pevt->type));
-                emit warn(dft_str);
+                msg2c.clear();
+                msg2c.append("recive none process msg: Type ");
+                msg2c.append(QString::number(pevt->type));
+                emit warn(_fmtMsg(msg2c));
             }
             break;
         }
@@ -148,7 +169,15 @@ void SipEvtThr::send_INVITE() {
    @brief send buy to terminate a video call
 */
 void SipEvtThr::send_BYE() {
-
+    if(_callinfo.cid != -1 && _callinfo.did != -1) {
+        if(eXosip_call_terminate(_callinfo.cid, _callinfo.did) != 0) {
+            QString errs = _fmtMsg("terminate call failed!");
+            emit err(errs);
+        } else {
+            QString succs = _fmtMsg("terminate call succcess!");
+            emit succ(succs);
+        }
+    }
 }
 
 int SipEvtThr::_send_401Reg(eXosip_event_t *e,
@@ -187,21 +216,29 @@ int SipEvtThr::_send_401Reg(eXosip_event_t *e,
     return 0;
 }
 
-int SipEvtThr::_send_2xxAns(eXosip_event_t *e) {
-    if(e == NULL) {
+/**
+   @brief send ans for any status
+   @return
+*/
+int SipEvtThr::_send_AnsStatus(eXosip_event_t *e, int status) {
+    if(e == NULL && (status <= 100 || status > 699)) {
         return -1;
     }
     int b_ret = -1;
     osip_message_t *ans;
-    b_ret = eXosip_message_build_answer(e->tid, 200, &ans);
+    b_ret = eXosip_message_build_answer(e->tid, status, &ans);
     if(b_ret != 0) {
+        /*some times build return fail but send will be success
+         *so in this case should not return*/
         qDebug() << "build ans 2xx failed " << b_ret;
     }
     /*if the req method is NOTIFY exosip 3.3 will not send 200 ok
      *use exosip 3.6 will slove this prob!!*/
     //osip_message_set_status_code(ans, 200);
-    b_ret = eXosip_message_send_answer(e->tid, 200, ans);
+    b_ret = eXosip_message_send_answer(e->tid, status, ans);
     if(b_ret != 0) {
+        /*the same as above(build)
+         **/
         qDebug() << "send ans 2xx failed " << b_ret;
     }
 
@@ -295,7 +332,7 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
         qDebug() << auth->nonce;
 #endif
         if(chk_ret != 0) {
-            QString warns_s("recv reg msg REG INFO not complete!");
+            QString warns_s = _fmtMsg("recv reg msg REG INFO not complete!");
             emit warn(warns_s);
             return;
         }
@@ -303,16 +340,16 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
                               auth->uri, osip_message_get_method(e->request),
                               auth->nonce);
         if(chk_ret == 0) {
-            QString succs("MD5 chk success!");
+            QString succs = _fmtMsg("MD5 chk success!");
             emit succ(succs);
 
             eXosip_lock();
-            _send_2xxAns(e);
+            _send_AnsStatus(e, 200);
             eXosip_unlock();
 
             succs.clear();
             succs = QString ("%1 %2 %3").arg("client:").arg(auth->username).arg(" reg success!");
-            emit succ(succs);
+            emit succ(_fmtMsg(succs));
 
             osip_contact_t *ctinfo = NULL;
             osip_message_get_contact(e->request, 0, &ctinfo);
@@ -327,7 +364,7 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
                          _data.local_ip,  (char *)_data.nonce,
                          (char *)_data.alg, (char *)_data.auth_type);
             eXosip_unlock();
-            QString infos("send 401 Unauth to client");
+            QString infos = _fmtMsg("send 401 Unauth to client");
             emit info(infos);
             return;
         }
@@ -336,7 +373,7 @@ void SipEvtThr::_prcsReg(eXosip_event_t *e) {
         _send_401Reg(e,
                      _data.local_ip,  (char *)_data.nonce, (char *)_data.alg, (char *)_data.auth_type);
         eXosip_unlock();
-        QString infos("send 401 Unauth to client");
+        QString infos = _fmtMsg("send 401 Unauth to client");
         emit info(infos);
         return;
     }
@@ -353,7 +390,7 @@ void SipEvtThr::_prcsNotify(eXosip_event_t *e) {
         QString infos;
         infos.append("Notify recived length is: ");
         infos.append(clen->value);
-        emit info(infos);
+        emit info(_fmtMsg(infos));
     }
     osip_body_t *bd = NULL;
     osip_body_init(&bd);
@@ -368,10 +405,10 @@ void SipEvtThr::_prcsNotify(eXosip_event_t *e) {
         } else {
             infos.append("null");
         }
-        emit info(infos);
+        emit info(_fmtMsg(infos));
     }
     eXosip_lock();
-    _send_2xxAns(e);
+    _send_AnsStatus(e, 200);
     eXosip_unlock();
     return;
 
@@ -389,10 +426,14 @@ void SipEvtThr::_prcsINVITE(eXosip_event_t *e) {
         qDebug() << "ack build ret :" << b_ret;
         b_ret = eXosip_call_send_ack(e->did, inv_ack);
         qDebug() << "ack send ret :" << b_ret;
+
+        _callinfo.cid = e->cid;
+        _callinfo.did = e->did;
+
         eXosip_unlock();
         /*start waiting rtp stream here!*/
         emit rtp_start();
-        QString succs("send ack to client, wait for video!");
+        QString succs = _fmtMsg("send ack to client, wait for video!");
         emit succ(succs);
     }
     qDebug() << "chk content failed" << ct->type << "/" <<ct->subtype;
@@ -495,4 +536,13 @@ QString SipEvtThr::_readXmlNOTIFY(char *msg) {
     }
     return ret;
 
+}
+
+QString SipEvtThr::_fmtMsg(QString msg) {
+    QString ret;
+    ret.append("[TIME: ");
+    ret.append(QTime::currentTime().toString("hh:mm:ss]"));
+    ret.append("   ");
+    ret.append(msg);
+    return ret;
 }

@@ -28,7 +28,7 @@ public slots:
     void send_BYE();
 private:
     int _send_401Reg(eXosip_event_t *e, char *ipaddr, char *nonce, char *alg, char *auth_type);
-    int _send_2xxAns(eXosip_event_t *e);
+    int _send_AnsStatus(eXosip_event_t *e, int status);
     int _addQuote(char *str, int len, char *out, int olen);
     QString _rmQuote(char *str);
     int _cmpRespMd5(char *resp, char *username, char *pass, char *relam, char *uri, char *method, char *nonce);
@@ -41,6 +41,7 @@ private:
     QString _bdSDPMsg(char *oip, char *cip, int lport, int payload);
     QString _bdFTC(char *code, char *ip, int port);
     QString _readXmlNOTIFY(char *msg);
+    QString _fmtMsg(QString msg);
 private:
     eXosip_event *pevt;
     enum {
@@ -63,6 +64,10 @@ private:
         int rtp_port;
         int rtp_playload;
     }_data;
+    struct CallInfo {
+        int cid;
+        int did;
+    }_callinfo;
     Settings *_uset;
 };
 
