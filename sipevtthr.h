@@ -59,7 +59,8 @@ private:
         const char *alg;
         const char *auth_type;
         const char *dft_pass;
-        const char *dft_sc_type;
+        const char *dft_sdp_type;
+        const char *dft_xml_type;
         char *user_code;
         char *local_ip;
         int sip_port;
