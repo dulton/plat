@@ -2,6 +2,8 @@
 #include <QXmlStreamWriter>
 #include <QXmlStreamAttribute>
 #include <QXmlStreamAttributes>
+#include <QBuffer>
+#include <QTextCodec>
 
 PtzInfo::PtzInfo(QString devcode, QObject *parent)
     :QObject(parent) {
@@ -56,5 +58,10 @@ QString PtzInfo::DevCode() const {
 }
 
 QString PtzInfo::getXmlMsg() {
-
+    QXmlStreamWriter writer;
+    QBuffer buf;
+    writer.setDevice(&buf);
+    writer.setCodec(QTextCodec::codecForName("UTF-8"));
+    writer.writeStartDocument("1.0");
+    writer.writeEndDocument();
 }

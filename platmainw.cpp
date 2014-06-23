@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <eXosip2/eXosip.h>
 #endif
+#include "xmlmsgwriter.h"
 
 PlatMainW::PlatMainW(QWidget *parent) :
     QMainWindow(parent),
@@ -275,7 +276,16 @@ void PlatMainW::on_b_up_clicked() {
 }
 
 void PlatMainW::on_b_down_clicked() {
-
+    QString str;
+    XmlMsgWriter write(&str);
+    write.write_SIP_Start("ControlCam");
+    write.write_PtzItem("111111111111111111",
+                        "0x1234",
+                        "0x1",
+                        "0x2",
+                        "0x3");
+    write.write_SIP_End();
+    qDebug() << str;
 }
 
 void PlatMainW::on_b_left_clicked() {
