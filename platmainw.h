@@ -30,6 +30,16 @@ private slots:
     void evtLoopSucc(QString succ);
     void startRecvRtp();
     void updateResDisp(QString s);
+    /*for ptz*/
+    void on_b_right_up_clicked();
+    void on_b_right_clicked();
+    void on_b_right_down_clicked();
+    void on_b_down_clicked();
+    void on_b_left_down_clicked();
+    void on_b_left_clicked();
+    void on_b_left_up_clicked();
+    void on_b_up_clicked();
+
 private:
     void _extUISetUp();
     void _extDataSetUp();

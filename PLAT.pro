@@ -17,13 +17,15 @@ SOURCES += main.cpp\
     videoview.cpp \
     videofiltersmodel.cpp \
     sipevtthr.cpp \
-    settings.cpp
+    settings.cpp \
+    ptzinfo.cpp
 
 HEADERS  += platmainw.h \
     videoview.h \
     videofiltersmodel.h \
     sipevtthr.h \
-    settings.h
+    settings.h \
+    ptzinfo.h
 
 FORMS    += platmainw.ui
 

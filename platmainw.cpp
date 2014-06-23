@@ -251,3 +251,40 @@ void PlatMainW::updateResDisp(QString s) {
     ui->txtDev->setTextColor(Qt::darkBlue);
     ui->txtDev->append(s);
 }
+
+
+
+/*for ptzs*/
+void PlatMainW::on_b_left_up_clicked() {
+
+}
+void PlatMainW::on_b_left_down_clicked() {
+
+}
+
+void PlatMainW::on_b_right_up_clicked() {
+
+}
+
+void PlatMainW::on_b_right_down_clicked() {
+
+}
+
+void PlatMainW::on_b_up_clicked() {
+
+}
+
+void PlatMainW::on_b_down_clicked() {
+
+}
+
+void PlatMainW::on_b_left_clicked() {
+
+}
+
+void PlatMainW::on_b_right_clicked() {
+
+}
+
+
+
