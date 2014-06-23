@@ -1,5 +1,6 @@
 #include "xmlmsgwriter.h"
 #include <QDebug>
+#include <QTextCodec>
 
 XmlMsgWriter::XmlMsgWriter(QString *out)
     :QXmlStreamWriter(out){
@@ -11,7 +12,10 @@ XmlMsgWriter::~XmlMsgWriter() {
 }
 
 void XmlMsgWriter::write_SIP_Start(const QString &evt_type) {
+    /*this will not add attr encoding utf-8*/
+    //setCodec(QTextCodec::codecForName("UTF-8"));
     writeStartDocument("1.0");
+    _fixencodingstr(_str);
     writeStartElement("SIP_XML");
     if(evt_type.length() > 0) {
         writeAttribute("EventType", evt_type);
@@ -39,8 +43,33 @@ void XmlMsgWriter::write_PtzItem(const QString &devcode,
 void XmlMsgWriter::write_SIP_End() {
     writeEndElement();
     writeEndDocument();
+    _addNewLine();
 }
 
 void XmlMsgWriter::_addNewLine() {
+    QChar var;
+    QList <int> posl;
+    int pos = 0;
+    foreach (var, *_str) {
+        if(var == '>') {
+            posl.push_back(pos);
+        }
+        pos++;
+    }
+    int _ioff = 0;
+    foreach (pos, posl) {
+        _str->insert(pos + 1 + _ioff, "\r\n");
+        _ioff += strlen("\r\n");
+    }
+}
 
+/*fix set encoding tag*/
+void XmlMsgWriter::_fixencodingstr(QString *str) {
+    QString fix_en = " encoding=\"UTF-8\"";
+    int pos = str->indexOf("?>");
+    if(pos == -1) {
+        return;
+    }
+    _str->insert(pos, fix_en);
+    return;
 }

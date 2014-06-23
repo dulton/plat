@@ -16,6 +16,7 @@ public:
 private:
     QString *_str;
     void _addNewLine();
+    void _fixencodingstr(QString *str);
 };
 
 #endif // XMLMSGWRITER_H
