@@ -7,6 +7,7 @@
 #include <QMap>
 #include <QString>
 #include "settings.h"
+#include "ptzinfo.h"
 
 class SipEvtThr : public QObject
 {
@@ -26,6 +27,7 @@ public slots:
     void evtloop();
     void send_INVITE();
     void send_BYE();
+    void send_PTZ_DI_CTL(const PtzInfo &info);
 private:
     int _send_401Reg(eXosip_event_t *e, char *ipaddr, char *nonce, char *alg, char *auth_type);
     int _send_AnsStatus(eXosip_event_t *e, int status);

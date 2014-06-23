@@ -10,7 +10,9 @@
 #include <netinet/in.h>
 #include <eXosip2/eXosip.h>
 #endif
-#include "xmlmsgwriter.h"
+#include "ptzinfo.h"
+#include <QTimer>
+#include <QEventLoop>
 
 PlatMainW::PlatMainW(QWidget *parent) :
     QMainWindow(parent),
@@ -96,6 +98,7 @@ void PlatMainW::_initCfg() {
     _dftsip_port = 0;
     _localip = NULL;
     _usercode = NULL;
+    _ptz_timeout = 2000;
 
     /*simple vilidate*/
     if(_setmap.count() > 0) {
@@ -199,6 +202,68 @@ int PlatMainW::_initExosip() {
     return ret;
 }
 
+void PlatMainW::_ptz_send_cb(UI_PTZ_CMD cmd) {
+    PTZ_CMD cmd_s = PTZ_CMD_NONE;
+    PTZ_CMD cmd_e = PTZ_CMD_NONE;
+
+    switch (cmd) {
+        case UI_PTZ_UP:
+            cmd_s = PTZ_UP_START;
+            cmd_e = PTZ_UP_STOP;
+            break;
+        case UI_PTZ_DOWN:
+            cmd_s = PTZ_DOWN_START;
+            cmd_e = PTZ_DOWN_STOP;
+            break;
+        case UI_PTZ_LEFT:
+            cmd_s = PTZ_LEFT_START;
+            cmd_e = PTZ_LEFT_STOP;
+            break;
+        case UI_PTZ_RIGHT:
+            cmd_s = PTZ_RIGHT_START;
+            cmd_e = PTZ_RIGHT_STOP;
+            break;
+        case UI_PTZ_UP_LEFT:
+            cmd_s = PTZ_UP_LEFT_START;
+            cmd_e = PTZ_UP_LEFT_STOP;
+            break;
+        case UI_PTZ_UP_RIGHT:
+            cmd_s = PTZ_UP_RIGHT_START;
+            cmd_e = PTZ_UP_RIGHT_STOP;
+            break;
+        case UI_PTZ_DOWN_LEFT:
+            cmd_s = PTZ_DOWN_LEFT_START;
+            cmd_e = PTZ_DOWN_LEFT_STOP;
+            break;
+        case UI_PTZ_DOWN_RIGHT:
+            cmd_s = PTZ_DOWN_RIGHT_START;
+            cmd_e = PTZ_DOWN_RIGHT_STOP;
+            break;
+        default:
+            break;
+    }
+
+    if(cmd_s != PTZ_CMD_NONE && cmd_e != PTZ_CMD_NONE) {
+        PtzInfo ctl_info_s(_usercode);
+        ctl_info_s.setPtzcmd(cmd_s);
+        ctl_info_s.setPara1(SPEED5);
+        ctl_info_s.setPara2(SPEED5);
+        _evtworker->send_PTZ_DI_CTL(ctl_info_s);
+        PtzInfo ctl_info_e(_usercode);
+        ctl_info_e.setPtzcmd(cmd_e);
+        ctl_info_e.setPara1(SPEED5);
+        ctl_info_e.setPara2(SPEED5);
+        QTimer timer;
+        timer.setInterval(_ptz_timeout);
+        timer.start();
+        QEventLoop loop;
+        connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+        loop.exec();
+        _evtworker->send_PTZ_DI_CTL(ctl_info_e);
+    }
+    return;
+}
+
 void PlatMainW::on_btn_invate_clicked() {
     _evtworker->send_INVITE();
 #if 0
@@ -257,44 +322,37 @@ void PlatMainW::updateResDisp(QString s) {
 
 /*for ptzs*/
 void PlatMainW::on_b_left_up_clicked() {
-
+    /*para = start same as stop*/
+    _ptz_send_cb(UI_PTZ_UP_LEFT);
 }
 void PlatMainW::on_b_left_down_clicked() {
-
+    _ptz_send_cb(UI_PTZ_DOWN_LEFT);
 }
 
 void PlatMainW::on_b_right_up_clicked() {
-
+    _ptz_send_cb(UI_PTZ_UP_RIGHT);
 }
 
 void PlatMainW::on_b_right_down_clicked() {
-
+    _ptz_send_cb(UI_PTZ_DOWN_RIGHT);
 }
 
 void PlatMainW::on_b_up_clicked() {
 
+    _ptz_send_cb(UI_PTZ_UP);
 }
 
 void PlatMainW::on_b_down_clicked() {
-    QString str;
-    XmlMsgWriter write(&str);
-    write.write_SIP_Start("ControlCam");
-    write.write_PtzItem("111111111111111111",
-                        "0x1234",
-                        "0x1",
-                        "0x2",
-                        "0x3");
-    write.write_SIP_End();
-    qDebug() << str;
+
+    _ptz_send_cb(UI_PTZ_DOWN);
 }
 
 void PlatMainW::on_b_left_clicked() {
 
+    _ptz_send_cb(UI_PTZ_LEFT);
 }
 
 void PlatMainW::on_b_right_clicked() {
+    _ptz_send_cb(UI_PTZ_RIGHT);
 
 }
-
-
-

@@ -1,9 +1,6 @@
 #include "ptzinfo.h"
-#include <QXmlStreamWriter>
-#include <QXmlStreamAttribute>
-#include <QXmlStreamAttributes>
-#include <QBuffer>
-#include <QTextCodec>
+#include <QDebug>
+#include "xmlmsgwriter.h"
 
 PtzInfo::PtzInfo(QString devcode, QObject *parent)
     :QObject(parent) {
@@ -57,11 +54,18 @@ QString PtzInfo::DevCode() const {
     return _devcode;
 }
 
-QString PtzInfo::getXmlMsg() {
-    QXmlStreamWriter writer;
-    QBuffer buf;
-    writer.setDevice(&buf);
-    writer.setCodec(QTextCodec::codecForName("UTF-8"));
-    writer.writeStartDocument("1.0");
-    writer.writeEndDocument();
+QString PtzInfo::getXmlMsg() const {
+    QString str;
+    if(_devcode.isEmpty() || _ptzcmd == PTZ_CMD_NONE ||
+       _sp1 == SPEED_NONE || _sp2 == SPEED_NONE) {
+        return str;
+    }
+    XmlMsgWriter write(&str);
+    write.write_SIP_Start("Control_Camera");
+    write.write_PtzItem(_devcode,
+                        QString::number(_ptzcmd, 16),
+                        QString::number(_sp1, 16),
+                        QString::number(_sp2, 16));
+    write.write_SIP_End();
+    return str;
 }

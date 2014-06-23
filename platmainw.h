@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QFile>
 #include <QThread>
+#include "uidefines.h"
 
 namespace Ui {
 class PlatMainW;
@@ -46,6 +47,7 @@ private:
     void _initCfg();
     void _initSipEvtListener();
     int _initExosip();
+    void _ptz_send_cb(UI_PTZ_CMD cmd);
 private:
     Ui::PlatMainW *ui;
     VideoView *_videoview;
@@ -58,6 +60,7 @@ private:
     int _dftrtp_port;
     char *_localip;
     char *_usercode;
+    int _ptz_timeout;
 
 #if defined(Q_OS_WIN)
     int _ipaddlen;

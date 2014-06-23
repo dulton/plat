@@ -182,6 +182,13 @@ void SipEvtThr::send_BYE() {
     }
 }
 
+/**
+   @brief send ptz direction ctl msg
+*/
+void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
+    qDebug() << info.getXmlMsg();
+}
+
 int SipEvtThr::_send_401Reg(eXosip_event_t *e,
                             char *ipaddr, char *nonce, char *alg, char *auth_type) {
 

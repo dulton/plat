@@ -27,7 +27,9 @@ HEADERS  += platmainw.h \
     sipevtthr.h \
     settings.h \
     ptzinfo.h \
-    xmlmsgwriter.h
+    xmlmsgwriter.h \
+    ptzdefines.h \
+    uidefines.h
 
 FORMS    += platmainw.ui
 

@@ -24,11 +24,12 @@ void XmlMsgWriter::write_SIP_Start(const QString &evt_type) {
     }
 }
 
+/*CommandPara3 may be reserved*/
 void XmlMsgWriter::write_PtzItem(const QString &devcode,
                                  const QString &cmd, const QString &p1,
                                  const QString &p2, const QString &p3) {
     if(devcode.isEmpty() || cmd.isEmpty() ||
-            p1.isEmpty() || p2.isEmpty() || p3.isEmpty()) {
+            p1.isEmpty() || p2.isEmpty()) {
         return;
     }
     writeStartElement("Item");
@@ -36,7 +37,9 @@ void XmlMsgWriter::write_PtzItem(const QString &devcode,
     writeAttribute("Command", cmd);
     writeAttribute("CommandPara1", p1);
     writeAttribute("CommandPara2", p2);
-    writeAttribute("CommandPara3", p3);
+    if(!p3.isEmpty()) {
+        writeAttribute("CommandPara3", p3);
+    }
     writeEndElement();
 }
 
