@@ -187,6 +187,8 @@ void SipEvtThr::send_BYE() {
 */
 void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
     qDebug() << info.getXmlMsg();
+    osip_message_t *ptzmsg;
+    //eXosip_message_build_request(&ptzmsg, "MESSAGE", )
 }
 
 int SipEvtThr::_send_401Reg(eXosip_event_t *e,

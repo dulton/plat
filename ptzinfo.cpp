@@ -2,9 +2,9 @@
 #include <QDebug>
 #include "xmlmsgwriter.h"
 
-PtzInfo::PtzInfo(QString devcode, QObject *parent)
+PtzInfo::PtzInfo(QString camcode, QObject *parent)
     :QObject(parent) {
-    _devcode = devcode;
+    _camcode= camcode;
     _ptzcmd = PTZ_CMD_NONE;
     _sp1 = SPEED_NONE;
     _sp2 = SPEED_NONE;
@@ -46,23 +46,23 @@ int PtzInfo::PrePara() const {
     return _prepara;
 }
 
-void PtzInfo::setDevCode(const QString &devcode) {
-    _devcode = devcode;
+void PtzInfo::setCamCode(const QString &devcode) {
+    _camcode = devcode;
 }
 
-QString PtzInfo::DevCode() const {
-    return _devcode;
+QString PtzInfo::CamCode() const {
+    return _camcode;
 }
 
 QString PtzInfo::getXmlMsg() const {
     QString str;
-    if(_devcode.isEmpty() || _ptzcmd == PTZ_CMD_NONE ||
+    if(_camcode.isEmpty() || _ptzcmd == PTZ_CMD_NONE ||
        _sp1 == SPEED_NONE || _sp2 == SPEED_NONE) {
         return str;
     }
     XmlMsgWriter write(&str);
     write.write_SIP_Start("Control_Camera");
-    write.write_PtzItem(_devcode,
+    write.write_PtzItem(_camcode,
                         QString::number(_ptzcmd, 16),
                         QString::number(_sp1, 16),
                         QString::number(_sp2, 16));

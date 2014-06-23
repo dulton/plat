@@ -60,11 +60,13 @@ private:
     int _dftrtp_port;
     char *_localip;
     char *_usercode;
+    char *_camcode;
     int _ptz_timeout;
 
 #if defined(Q_OS_WIN)
     int _ipaddlen;
     int _usercodelen;
+    int _camcodelen;
 #endif
 };
 

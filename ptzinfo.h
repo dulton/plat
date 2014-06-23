@@ -8,7 +8,7 @@ class PtzInfo : public QObject
 {
     Q_OBJECT
 public:
-    explicit PtzInfo(QString devcode, QObject *parent = 0);
+    explicit PtzInfo(QString camcode, QObject *parent = 0);
     ~PtzInfo();
     void setPtzcmd(const PTZ_CMD &ptzcmd);
     PTZ_CMD Ptzcmd() const;
@@ -18,8 +18,8 @@ public:
     SPEED Para2() const;
     void setPrePara(const int &para);
     int PrePara() const;
-    void setDevCode(const QString &devcode);
-    QString DevCode() const;
+    void setCamCode(const QString &devcode);
+    QString CamCode() const;
     QString getXmlMsg() const;
 signals:
 
@@ -30,7 +30,7 @@ private:
     SPEED _sp1;
     SPEED _sp2;
     int _prepara;
-    QString _devcode;
+    QString _camcode;
 };
 
 #endif // PTZINFO_H

@@ -41,6 +41,9 @@ PlatMainW::~PlatMainW()
     if(_usercode != NULL) {
         delete []_usercode;
     }
+    if(_camcode != NULL) {
+        delete []_camcode;
+    }
 }
 
 void PlatMainW::_extUISetUp() {
@@ -98,6 +101,7 @@ void PlatMainW::_initCfg() {
     _dftsip_port = 0;
     _localip = NULL;
     _usercode = NULL;
+    _camcode = NULL;
     _ptz_timeout = 2000;
 
     /*simple vilidate*/
@@ -138,10 +142,23 @@ void PlatMainW::_initCfg() {
 #endif
                 memset(_usercode, 0, sizeof(char) * _len);
                 strcpy(_usercode, i.value().toStdString().c_str());
+
+            } else if(QString::compare("cam_code", i.key(), Qt::CaseInsensitive) == 0) {
+                _camcode = new char[i.value().trimmed().length() + 1];
+                if(_camcode == NULL) {
+                    exit(-1);
+                }
+                int _len = i.value().trimmed().length();
+#if defined(Q_OS_WIN)
+                _usercodelen = _len;
+#endif
+                memset(_camcode, 0, sizeof(char) * _len);
+                strcpy(_camcode, i.value().toStdString().c_str());
             }
         }
     }
     qDebug() << _usercode;
+    qDebug() << _camcode;
     return;
 }
 
@@ -184,6 +201,9 @@ int PlatMainW::_initExosip() {
     }
     if(_usercodelen > 0 && (int)strlen(_usercode) > _usercodelen) {
         *(_usercode + _usercodelen) = '\0';
+    }
+    if(_camcodelen > 0 && (int)strlen(_camcode) > _camcodelen) {
+        *(_camcode + _camcodelen) = '\0';
     }
 #endif
     if(_localip == NULL && _dftsip_port == 0) {
@@ -244,12 +264,12 @@ void PlatMainW::_ptz_send_cb(UI_PTZ_CMD cmd) {
     }
 
     if(cmd_s != PTZ_CMD_NONE && cmd_e != PTZ_CMD_NONE) {
-        PtzInfo ctl_info_s(_usercode);
+        PtzInfo ctl_info_s(_camcode);
         ctl_info_s.setPtzcmd(cmd_s);
         ctl_info_s.setPara1(SPEED5);
         ctl_info_s.setPara2(SPEED5);
         _evtworker->send_PTZ_DI_CTL(ctl_info_s);
-        PtzInfo ctl_info_e(_usercode);
+        PtzInfo ctl_info_e(_camcode);
         ctl_info_e.setPtzcmd(cmd_e);
         ctl_info_e.setPara1(SPEED5);
         ctl_info_e.setPara2(SPEED5);
