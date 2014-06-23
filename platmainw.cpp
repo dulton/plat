@@ -318,8 +318,6 @@ void PlatMainW::updateResDisp(QString s) {
     ui->txtDev->append(s);
 }
 
-
-
 /*for ptzs*/
 void PlatMainW::on_b_left_up_clicked() {
     /*para = start same as stop*/
