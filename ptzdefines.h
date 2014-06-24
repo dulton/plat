@@ -57,4 +57,10 @@ typedef enum _SPEED {
     SPEED_NONE = 0xf
 } SPEED;
 
+typedef enum _CMD_TYPE {
+    CMD_DI,     /*for up down left right etc...*/
+    CMD_ZOOM,
+    CMD_CTL,    /*for warm w_wiper lights infrared lock etc...*/
+    CMD_NONE
+}CMD_TYPE;
 #endif // PTZDEFINES_H

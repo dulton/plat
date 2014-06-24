@@ -7,7 +7,6 @@
 #include <QMainWindow>
 #include <QFile>
 #include <QThread>
-#include "uidefines.h"
 
 namespace Ui {
 class PlatMainW;
@@ -32,14 +31,25 @@ private slots:
     void startRecvRtp();
     void updateResDisp(QString s);
     /*for ptz*/
-    void on_b_right_up_clicked();
-    void on_b_right_clicked();
-    void on_b_right_down_clicked();
-    void on_b_down_clicked();
-    void on_b_left_down_clicked();
-    void on_b_left_clicked();
-    void on_b_left_up_clicked();
-    void on_b_up_clicked();
+
+    void on_b_right_up_pressed();
+    void on_b_right_pressed();
+    void on_b_right_down_pressed();
+    void on_b_down_pressed();
+    void on_b_left_down_pressed();
+    void on_b_left_pressed();
+    void on_b_left_up_pressed();
+    void on_b_up_pressed();
+
+    void on_b_right_up_released();
+    void on_b_right_released();
+    void on_b_right_down_released();
+    void on_b_down_released();
+    void on_b_left_down_released();
+    void on_b_left_released();
+    void on_b_left_up_released();
+    void on_b_up_released();
+
 
 private:
     void _extUISetUp();
@@ -47,7 +57,8 @@ private:
     void _initCfg();
     void _initSipEvtListener();
     int _initExosip();
-    void _ptz_send_cb(UI_PTZ_CMD cmd);
+    void _ptz_send_cb(PTZ_CMD cmd);
+    int _chk_ptz_cmd(const PTZ_CMD &cmd);
 private:
     Ui::PlatMainW *ui;
     VideoView *_videoview;
@@ -69,5 +80,26 @@ private:
     int _camcodelen;
 #endif
 };
+
+inline int PlatMainW::_chk_ptz_cmd(const PTZ_CMD &cmd) {
+    if(cmd == PTZ_UP_START || cmd == PTZ_UP_STOP ||
+       cmd == PTZ_DOWN_START || cmd == PTZ_DOWN_STOP ||
+       cmd == PTZ_LEFT_START || cmd == PTZ_LEFT_STOP ||
+       cmd == PTZ_RIGHT_START || cmd == PTZ_RIGHT_STOP ||
+       cmd == PTZ_UP_LEFT_START || cmd == PTZ_UP_LEFT_STOP ||
+       cmd == PTZ_DOWN_LEFT_START || cmd == PTZ_DOWN_LEFT_STOP ||
+       cmd == PTZ_UP_RIGHT_START || cmd == PTZ_UP_RIGHT_STOP ||
+       cmd == PTZ_DOWN_RIGHT_START || cmd == PTZ_DOWN_RIGHT_STOP) {
+        return CMD_DI;
+    } else if (cmd == PTZ_LIGHT_ON || cmd == PTZ_LIGHT_OFF ||
+               cmd == PTZ_WARM_ON  || cmd == PTZ_WARM_OFF  ||
+               cmd == PTZ_INFRARED_ON || cmd == PTZ_INFRARED_OFF ||
+               cmd == PTZ_W_WIPER_ON || cmd == PTZ_W_WIPER_OFF ||
+               cmd == PTZ_LOCK || cmd == PTZ_UNLOCK) {
+        return CMD_CTL;
+    }
+    return CMD_NONE;
+    /*other will be add later*/
+}
 
 #endif // PLATMAINW_H

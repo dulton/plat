@@ -68,6 +68,8 @@ void PlatMainW::_extUISetUp() {
 
     ui->btn_invate->setEnabled(false);
     ui->btn_stop->setEnabled(false);
+
+
 }
 
 void PlatMainW::_extDataSetUp() {
@@ -228,65 +230,15 @@ int PlatMainW::_initExosip() {
     return ret;
 }
 
-void PlatMainW::_ptz_send_cb(UI_PTZ_CMD cmd) {
-    PTZ_CMD cmd_s = PTZ_CMD_NONE;
-    PTZ_CMD cmd_e = PTZ_CMD_NONE;
-
-    switch (cmd) {
-        case UI_PTZ_UP:
-            cmd_s = PTZ_UP_START;
-            cmd_e = PTZ_UP_STOP;
-            break;
-        case UI_PTZ_DOWN:
-            cmd_s = PTZ_DOWN_START;
-            cmd_e = PTZ_DOWN_STOP;
-            break;
-        case UI_PTZ_LEFT:
-            cmd_s = PTZ_LEFT_START;
-            cmd_e = PTZ_LEFT_STOP;
-            break;
-        case UI_PTZ_RIGHT:
-            cmd_s = PTZ_RIGHT_START;
-            cmd_e = PTZ_RIGHT_STOP;
-            break;
-        case UI_PTZ_UP_LEFT:
-            cmd_s = PTZ_UP_LEFT_START;
-            cmd_e = PTZ_UP_LEFT_STOP;
-            break;
-        case UI_PTZ_UP_RIGHT:
-            cmd_s = PTZ_UP_RIGHT_START;
-            cmd_e = PTZ_UP_RIGHT_STOP;
-            break;
-        case UI_PTZ_DOWN_LEFT:
-            cmd_s = PTZ_DOWN_LEFT_START;
-            cmd_e = PTZ_DOWN_LEFT_STOP;
-            break;
-        case UI_PTZ_DOWN_RIGHT:
-            cmd_s = PTZ_DOWN_RIGHT_START;
-            cmd_e = PTZ_DOWN_RIGHT_STOP;
-            break;
-        default:
-            break;
-    }
-
-    if(cmd_s != PTZ_CMD_NONE && cmd_e != PTZ_CMD_NONE) {
-        PtzInfo ctl_info_s(_camcode);
-        ctl_info_s.setPtzcmd(cmd_s);
-        ctl_info_s.setPara1(SPEED5);
-        ctl_info_s.setPara2(SPEED5);
-        _evtworker->send_PTZ_DI_CTL(ctl_info_s);
-        PtzInfo ctl_info_e(_camcode);
-        ctl_info_e.setPtzcmd(cmd_e);
-        ctl_info_e.setPara1(SPEED5);
-        ctl_info_e.setPara2(SPEED5);
-
-        QTimer timer;
-        timer.setInterval(_ptz_timeout);
-        timer.start();
-        QEventLoop loop;
-        connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
-        loop.exec();
-        _evtworker->send_PTZ_DI_CTL(ctl_info_e);
+void PlatMainW::_ptz_send_cb(PTZ_CMD cmd) {
+    if(cmd != PTZ_CMD_NONE) {
+        if(_chk_ptz_cmd(cmd) == CMD_DI) {
+            PtzInfo ctl_info(_camcode);
+            ctl_info.setPtzcmd(cmd);
+            ctl_info.setPara1(SPEED5);
+            ctl_info.setPara2(SPEED5);
+            _evtworker->send_PTZ_DI_CTL(ctl_info);
+        }
     }
     return;
 }
@@ -346,38 +298,66 @@ void PlatMainW::updateResDisp(QString s) {
 }
 
 /*for ptzs*/
-void PlatMainW::on_b_left_up_clicked() {
+void PlatMainW::on_b_left_up_pressed() {
     /*para = start same as stop*/
-    _ptz_send_cb(UI_PTZ_UP_LEFT);
+    _ptz_send_cb(PTZ_UP_LEFT_START);
 }
-void PlatMainW::on_b_left_down_clicked() {
-    _ptz_send_cb(UI_PTZ_DOWN_LEFT);
-}
-
-void PlatMainW::on_b_right_up_clicked() {
-    _ptz_send_cb(UI_PTZ_UP_RIGHT);
+void PlatMainW::on_b_left_down_pressed() {
+    _ptz_send_cb(PTZ_DOWN_LEFT_START);
 }
 
-void PlatMainW::on_b_right_down_clicked() {
-    _ptz_send_cb(UI_PTZ_DOWN_RIGHT);
+void PlatMainW::on_b_right_up_pressed() {
+    _ptz_send_cb(PTZ_UP_RIGHT_START);
 }
 
-void PlatMainW::on_b_up_clicked() {
-
-    _ptz_send_cb(UI_PTZ_UP);
+void PlatMainW::on_b_right_down_pressed() {
+    _ptz_send_cb(PTZ_DOWN_RIGHT_START);
 }
 
-void PlatMainW::on_b_down_clicked() {
-
-    _ptz_send_cb(UI_PTZ_DOWN);
+void PlatMainW::on_b_up_pressed() {
+    _ptz_send_cb(PTZ_UP_START);
 }
 
-void PlatMainW::on_b_left_clicked() {
-
-    _ptz_send_cb(UI_PTZ_LEFT);
+void PlatMainW::on_b_down_pressed() {
+    _ptz_send_cb(PTZ_DOWN_START);
+}
+void PlatMainW::on_b_left_pressed() {
+    _ptz_send_cb(PTZ_LEFT_START);
+}
+void PlatMainW::on_b_right_pressed() {
+    _ptz_send_cb(PTZ_RIGHT_START);
 }
 
-void PlatMainW::on_b_right_clicked() {
-    _ptz_send_cb(UI_PTZ_RIGHT);
 
+void PlatMainW::on_b_right_up_released() {
+    _ptz_send_cb(PTZ_UP_RIGHT_STOP);
+}
+
+void PlatMainW::on_b_right_released() {
+    _ptz_send_cb(PTZ_RIGHT_STOP);
+}
+
+void PlatMainW::on_b_right_down_released() {
+    _ptz_send_cb(PTZ_DOWN_RIGHT_STOP);
+}
+
+void PlatMainW::on_b_down_released() {
+    _ptz_send_cb(PTZ_DOWN_STOP);
+}
+
+void PlatMainW::on_b_left_down_released() {
+    _ptz_send_cb(PTZ_DOWN_LEFT_STOP);
+}
+
+void PlatMainW::on_b_left_released() {
+    _ptz_send_cb(PTZ_LEFT_STOP);
+
+}
+
+void PlatMainW::on_b_left_up_released() {
+    _ptz_send_cb(PTZ_UP_LEFT_STOP);
+}
+
+void PlatMainW::on_b_up_released() {
+    _ptz_send_cb(PTZ_UP_STOP);
 }
