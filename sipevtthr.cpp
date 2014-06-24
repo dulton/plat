@@ -57,7 +57,18 @@ SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, char *user_code
 
     _data.sip_port = sip_port;
     _data.rtp_port = rtp_port;
+
+    /*every time uset.ini must be a new one*/
+    QFile f;
+    f.setFileName("./uset.ini");
+    if(f.exists()) {
+        f.remove();
+    }
     _uset = new Settings("./uset.ini");
+    _usetinfo.remoteip.clear();
+    _usetinfo.devcode.clear();
+    _usetinfo.pass.clear();
+    _usetinfo.remoteport = 0;
 }
 
 SipEvtThr::~SipEvtThr() {
@@ -155,50 +166,42 @@ void SipEvtThr::evtloop() {
 */
 void SipEvtThr::send_INVITE() {
 
-    QStringList clist = _uset->childGroups();
-    if(clist.count() >= 1) {
-        QString inv_to;
-        QString inv_from;
-        QString remote_ip;
-        QString dev_code;
-        int remote_port;
-        /*just pick the first one*/
-        dev_code = clist.at(0);
-        if(dev_code.isEmpty()) {
-            qDebug() << "grp is empty pls chk the record function";
-            return;
-        }
-        remote_ip = _uset->readGKV(dev_code, "ip_addr");
-        bool f;
-        remote_port = _uset->readGKV(dev_code, "port").toInt(&f);
-        if(!f) {
-            remote_port = 5061;
-        }
-        inv_to = _bdFTC((char *)dev_code.toStdString().c_str(),
-                        (char *)remote_ip.toStdString().c_str(), remote_port);
-        inv_from = _bdFTC(_data.user_code, _data.local_ip, _data.sip_port);
+    _readUset();
+    if(_chkUset() != 0) {
+        QString msg = _fmtMsg("user set read err");
+        emit err(msg);
+        qDebug() << Q_FUNC_INFO << "user set read err";
+        return;
+    }
+
+    QString inv_to;
+    QString inv_from;
+
+    inv_to = _bdFTC((char *)_usetinfo.devcode.toStdString().c_str(),
+                    (char *)_usetinfo.remoteip.toStdString().c_str(), _usetinfo.remoteport);
+    inv_from = _bdFTC(_data.user_code, _data.local_ip, _data.sip_port);
+
 
 #if 0
-        qDebug() << inv_to;
-        qDebug() << inv_from;
+    qDebug() << inv_to;
+    qDebug() << inv_from;
 #endif
-        osip_message_t *invate;
-        /*this sdp msg may not right but
+    eXosip_lock();
+    osip_message_t *invate;
+    /*this sdp msg may not right but
          *plat will not use this sdp so dosen't matter*/
-        QString sdp_msg = _bdSDPMsg(_data.local_ip, _data.local_ip, _data.sip_port, _data.rtp_playload);
-        int b_ret = eXosip_call_build_initial_invite(&invate, inv_to.toStdString().c_str(),
-                                                                     inv_from.toStdString().c_str(),
-                                                                     NULL,
-                                                                     "THIS");
-
-        osip_message_set_contact(invate, inv_from.toStdString().c_str());
-        qDebug() << "build ret for init invate" << b_ret;
-        osip_message_set_content_type(invate, _data.dft_sdp_type);
-        osip_message_set_body(invate, sdp_msg.toStdString().c_str(),
-                              strlen(sdp_msg.toStdString().c_str()));
-
-        eXosip_call_send_initial_invite(invate);
-    }
+    QString sdp_msg = _bdSDPMsg(_data.local_ip, _data.local_ip, _data.sip_port, _data.rtp_playload);
+    int b_ret = eXosip_call_build_initial_invite(&invate, inv_to.toStdString().c_str(),
+                                                 inv_from.toStdString().c_str(),
+                                                 NULL,
+                                                 "THIS");
+    osip_message_set_contact(invate, inv_from.toStdString().c_str());
+    qDebug() << "build ret for init invate" << b_ret;
+    osip_message_set_content_type(invate, _data.dft_sdp_type);
+    osip_message_set_body(invate, sdp_msg.toStdString().c_str(),
+                          strlen(sdp_msg.toStdString().c_str()));
+    eXosip_call_send_initial_invite(invate);
+    eXosip_unlock();
 }
 
 /**
@@ -221,88 +224,69 @@ void SipEvtThr::send_BYE() {
 */
 void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
 
-    QStringList clist = _uset->childGroups();
-    if(clist.count() >= 1) {
-        QString to;
-        QString from;
-        QString remote_ip;
-        QString dev_code;
-        int remote_port;
-        /*just pick the first one*/
-        dev_code = clist.at(0);
-        if(dev_code.isEmpty()) {
-            qDebug() << "grp is empty pls chk the record function";
+    _readUset();
+    if(_chkUset() != 0) {
+        QString msg = _fmtMsg("user set read err");
+        emit err(msg);
+        qDebug() << Q_FUNC_INFO << "user set read err";
+        return;
+    }
+
+    QString to;
+    QString from;
+
+    to = _bdFTC((char *)_usetinfo.devcode.toStdString().c_str(),
+                (char *)_usetinfo.remoteip.toStdString().c_str(), _usetinfo.remoteport);
+    from = _bdFTC(_data.user_code, _data.local_ip, _data.sip_port);
+
+
+    eXosip_lock();
+
+    osip_message_t *ptzmsg;
+    QString ptzxml = info.getXmlMsg();
+    int b_ret = eXosip_message_build_request(&ptzmsg, "MESSAGE", to.toStdString().c_str(),
+                                             from.toStdString().c_str(),
+                                             NULL);
+    qDebug() << "build ret for ptz msg" << b_ret;
+    osip_message_set_contact(ptzmsg, from.toStdString().c_str());
+    osip_message_set_content_type(ptzmsg, _data.dft_xml_type);
+    osip_message_set_body(ptzmsg, ptzxml.toStdString().c_str(),
+                          strlen(ptzxml.toStdString().c_str()));
+    if(_fptz == 1 && _ptz_cid_str != NULL) {
+        osip_message_set_call_id(ptzmsg, _ptz_cid_str);
+        osip_call_id_t *_pcid = osip_message_get_call_id(ptzmsg);
+        qDebug() << "set call id is " << _ptz_cid_str;
+        qDebug() << "call id same " << _pcid->number;
+    }
+    b_ret = eXosip_message_send_request(ptzmsg);
+    qDebug() << "send ret for ptz " << b_ret;
+
+    if(_fptz == 0) {
+        osip_call_id_t *pcid = osip_message_get_call_id(ptzmsg);
+        if(pcid == NULL || pcid->number == NULL) {
+            eXosip_unlock();
             return;
         }
-        remote_ip = _uset->readGKV(dev_code, "ip_addr");
-        bool f;
-        remote_port = _uset->readGKV(dev_code, "port").toInt(&f);
-        if(!f) {
-            remote_port = 5061;
+        qDebug() << "call id is: " << pcid->number;
+        try {
+            _ptz_cid_str = new char[strlen(pcid->number) + 1];
+        } catch (...) {
+            _fptz = 0;
+            eXosip_unlock();
+            return;
         }
-        to = _bdFTC((char *)dev_code.toStdString().c_str(),
-                        (char *)remote_ip.toStdString().c_str(), remote_port);
-        from = _bdFTC(_data.user_code, _data.local_ip, _data.sip_port);
-
-#if 0
-        qDebug() << inv_to;
-        qDebug() << inv_from;
-#endif
-
-
-        qDebug() <<"1."<< Q_FUNC_INFO ;
-        eXosip_lock();
-        qDebug() <<"after lock!"<< Q_FUNC_INFO ;
-        osip_message_t *ptzmsg;
-        QString ptzxml = info.getXmlMsg();
-        int b_ret = eXosip_message_build_request(&ptzmsg, "MESSAGE", to.toStdString().c_str(),
-                                     from.toStdString().c_str(),
-                                     NULL);
-        qDebug() << "build ret for ptz msg" << b_ret;
-        osip_message_set_contact(ptzmsg, from.toStdString().c_str());
-
-        osip_message_set_content_type(ptzmsg, _data.dft_xml_type);
-        osip_message_set_body(ptzmsg, ptzxml.toStdString().c_str(),
-                              strlen(ptzxml.toStdString().c_str()));
-
-        if(_fptz == 1 && _ptz_cid_str != NULL) {
-            osip_message_set_call_id(ptzmsg, _ptz_cid_str);
-            osip_call_id_t *_pcid = osip_message_get_call_id(ptzmsg);
-            qDebug() << "set call id is " << _ptz_cid_str;
-            qDebug() << "call id same " << _pcid->number;
-        }
-        b_ret = eXosip_message_send_request(ptzmsg);
-        qDebug() << "send ret for ptz " << b_ret;
-
-        if(_fptz == 0) {
-            osip_call_id_t *pcid = osip_message_get_call_id(ptzmsg);
-            if(pcid == NULL || pcid->number == NULL) {
-                eXosip_unlock();
-                return;
-            }
-            qDebug() << "call id is: " << pcid->number;
-            try {
-                _ptz_cid_str = new char[strlen(pcid->number) + 1];
-            } catch (...) {
-                _fptz = 0;
-                eXosip_unlock();
-                return;
-            }
-            memset(_ptz_cid_str, 0, sizeof(_ptz_cid_str) / sizeof(_ptz_cid_str[0]));
-            strncpy(_ptz_cid_str, pcid->number, strlen(pcid->number));
-            *(_ptz_cid_str + strlen(pcid->number)) = '\0';
-            _fptz = 1;
-        }
-
-        eXosip_unlock();
+        memset(_ptz_cid_str, 0, sizeof(_ptz_cid_str) / sizeof(_ptz_cid_str[0]));
+        strncpy(_ptz_cid_str, pcid->number, strlen(pcid->number));
+        *(_ptz_cid_str + strlen(pcid->number)) = '\0';
+        _fptz = 1;
     }
-    qDebug() << "clist err";
+    eXosip_unlock();
 
 #if 0
     qDebug() << info.getXmlMsg();
 
 #endif
-
+    return;
 }
 
 int SipEvtThr::_send_401Reg(eXosip_event_t *e,
@@ -572,14 +556,10 @@ void SipEvtThr::_recContractVia(osip_contact_t *c, osip_via_t *v) {
     if(c != NULL && c->url != NULL &&
        c->url->username != NULL && c->url->host != NULL &&
        v != NULL && v->port != NULL) {
-#if 0
-        QFile _f;
-        _f.setFileName(_uset->fileName());
-        _f.remove();
-#endif
-        _uset->writeGrp(c->url->username, "pass", _data.dft_pass);
+        _uset->clear();
         _uset->writeGrp(c->url->username, "ip_addr", c->url->host);
         _uset->writeGrp(c->url->username, "port", v->port);
+        _uset->writeGrp(c->url->username, "pw", _data.dft_pass);
     }
     return;
 }
@@ -675,4 +655,25 @@ QString SipEvtThr::_fmtMsg(QString msg) {
     ret.append("   ");
     ret.append(msg);
     return ret;
+}
+
+void SipEvtThr::_readUset() {
+    QStringList clist = _uset->childGroups();
+    if(clist.size() >= 1) {
+        /*just pick the first one*/
+        _usetinfo.devcode = clist.at(0);
+        if(_usetinfo.devcode.isEmpty()) {
+            qDebug() << "grp is empty pls chk the record function";
+            return;
+        }
+        _usetinfo.pass = _uset->readGKV(_usetinfo.devcode, "pw");
+        _usetinfo.remoteip = _uset->readGKV(_usetinfo.devcode, "ip_addr");
+        bool f;
+        _usetinfo.remoteport = _uset->readGKV(_usetinfo.devcode, "port").toInt(&f);
+        if(!f) {
+            _usetinfo.remoteport = 5061;
+        }
+
+    }
+    return;
 }

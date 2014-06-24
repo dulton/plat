@@ -279,7 +279,7 @@ void PlatMainW::_ptz_send_cb(UI_PTZ_CMD cmd) {
         ctl_info_e.setPtzcmd(cmd_e);
         ctl_info_e.setPara1(SPEED5);
         ctl_info_e.setPara2(SPEED5);
-#if 0
+
         QTimer timer;
         timer.setInterval(_ptz_timeout);
         timer.start();
@@ -287,7 +287,6 @@ void PlatMainW::_ptz_send_cb(UI_PTZ_CMD cmd) {
         connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
         loop.exec();
         _evtworker->send_PTZ_DI_CTL(ctl_info_e);
-#endif
     }
     return;
 }

@@ -6,29 +6,20 @@
 
 Settings::Settings(QString filename, QObject *parent) :
     QSettings(filename, QSettings::IniFormat, parent) {
+    setIniCodec(QTextCodec::codecForName("UTF-8"));
 }
 
 QMap<QString, QString> Settings::readGrp(QString grp) {
     QMap<QString, QString> retmap;
     retmap.clear();
     if(grp.length() > 0) {
-        QFile file;
-        file.setFileName(this->fileName());
-        qDebug() << Q_FUNC_INFO <<this->fileName();
-        if(!file.exists()) {
-            return retmap;
+        beginGroup(grp);
+        QString item;
+        QStringList items = childKeys();
+        foreach (item, items) {
+            retmap.insert(item, value(item, "").toString().trimmed());
         }
-        if(file.open(QIODevice::ReadOnly)) {
-            setIniCodec(QTextCodec::codecForName("UTF-8"));
-            beginGroup(grp);
-            QString item;
-            QStringList items = childKeys();
-            foreach (item, items) {
-                retmap.insert(item, value(item, "").toString().trimmed());
-            }
-            endGroup();
-        }
-        file.close();
+        endGroup();
     }
     return retmap;
 }
@@ -40,19 +31,10 @@ int Settings::writeGrp(QString grp, QString key, QString val) {
     if(this->fileName().isEmpty()) {
         return -2;
     }
-    QFile file;
-    file.setFileName(this->fileName());
-    if(file.open(QIODevice::ReadWrite | QIODevice::Unbuffered)) {
-        setIniCodec(QTextCodec::codecForName("UTF-8"));
-        /*if grp exist then force add*/
-        beginGroup(grp);
-        setValue(key, val);
-        endGroup();
-    }
-    file.flush();
-    if(file.isOpen()) {
-        file.close();
-    }
+
+    beginGroup(grp);
+    setValue(key, val);
+    endGroup();
     return 0;
 }
 
@@ -65,18 +47,14 @@ QString Settings::readGKV(QString grp, QString key) {
     if(grp.isEmpty() || key.isEmpty()) {
         return ret;
     }
-    QFile file;
-    file.setFileName(this->fileName());
-    if(file.open(QIODevice::ReadOnly)) {
-        setIniCodec(QTextCodec::codecForName("UTF-8"));
-        beginGroup(grp);
-        if(contains(key)) {
-            return value(key).toString();
-        }
+
+    beginGroup(grp);
+    if(contains(key)) {
+        qDebug() << Q_FUNC_INFO << value(key).toString();
+        ret = value(key).toString();
         endGroup();
+        return ret;
     }
-    if(file.isOpen()) {
-        file.close();
-    }
+    endGroup();
     return ret;
 }

@@ -44,6 +44,8 @@ private:
     QString _bdFTC(char *code, char *ip, int port);
     QString _readXmlNOTIFY(char *msg);
     QString _fmtMsg(QString msg);
+    void _readUset();
+    int _chkUset();
 private:
     eXosip_event *pevt;
     enum {
@@ -71,6 +73,12 @@ private:
         int cid;
         int did;
     }_callinfo, _ptzcallid;
+    struct UsetInfo {
+        QString devcode;
+        QString remoteip;
+        QString pass;
+        int remoteport;
+    }_usetinfo;
     char *_ptz_cid_str;
     int _fptz;
     Settings *_uset;
@@ -87,6 +95,20 @@ inline int SipEvtThr::_chkRegInfo(char *resp, char *username,
         }
     }
     return -1;
+}
+
+inline int SipEvtThr::_chkUset() {
+    if(_usetinfo.devcode.isEmpty() || _usetinfo.pass.isEmpty() ||
+            _usetinfo.remoteip.isEmpty() || _usetinfo.remoteport == 0) {
+#if 1
+        qDebug() << Q_FUNC_INFO << _usetinfo.devcode;
+        qDebug() << Q_FUNC_INFO << _usetinfo.pass;
+        qDebug() << Q_FUNC_INFO << _usetinfo.remoteip;
+        qDebug() << Q_FUNC_INFO << _usetinfo.remoteport;
+#endif
+        return -1;
+    }
+    return 0;
 }
 
 #endif // SIPEVTTHR_H
