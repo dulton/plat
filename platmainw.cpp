@@ -109,8 +109,10 @@ void PlatMainW::_initCfg() {
         QMap<QString, QString>::const_iterator i;
         for(i = _setmap.constBegin(); i != _setmap.constEnd(); ++i) {
             if(QString::compare("local_ip", i.key(), Qt::CaseInsensitive) == 0) {
-                _localip = new char[i.value().trimmed().length() + 1];
-                if(_localip == NULL) {
+                try {
+                    _localip = new char[i.value().trimmed().length() + 1];
+                } catch (...) {
+                    qDebug() << "new failed";
                     exit(-1);
                 }
                 int _len = i.value().trimmed().length();
@@ -132,8 +134,10 @@ void PlatMainW::_initCfg() {
                     _dftrtp_port = 1576;
                 }
             } else if(QString::compare("user_code", i.key(), Qt::CaseInsensitive) == 0) {
-                _usercode = new char[i.value().trimmed().length() + 1];
-                if(_usercode == NULL) {
+                try {
+                    _usercode = new char[i.value().trimmed().length() + 1];
+                } catch(...) {
+                    qDebug() << "new failed";
                     exit(-1);
                 }
                 int _len = i.value().trimmed().length();
@@ -144,8 +148,10 @@ void PlatMainW::_initCfg() {
                 strcpy(_usercode, i.value().toStdString().c_str());
 
             } else if(QString::compare("cam_code", i.key(), Qt::CaseInsensitive) == 0) {
-                _camcode = new char[i.value().trimmed().length() + 1];
-                if(_camcode == NULL) {
+                try {
+                    _camcode = new char[i.value().trimmed().length() + 1];
+                } catch(...) {
+                    qDebug() << "new failed";
                     exit(-1);
                 }
                 int _len = i.value().trimmed().length();
@@ -186,7 +192,7 @@ void PlatMainW::_initSipEvtListener() {
 int PlatMainW::_initExosip() {
 
     /*for debug*/
-    osip_trace_level_t t = TRACE_LEVEL7;
+    osip_trace_level_t t = TRACE_LEVEL1;
     TRACE_INITIALIZE(t, stdout);
 
     int ret = eXosip_init();
@@ -273,6 +279,7 @@ void PlatMainW::_ptz_send_cb(UI_PTZ_CMD cmd) {
         ctl_info_e.setPtzcmd(cmd_e);
         ctl_info_e.setPara1(SPEED5);
         ctl_info_e.setPara2(SPEED5);
+#if 0
         QTimer timer;
         timer.setInterval(_ptz_timeout);
         timer.start();
@@ -280,6 +287,7 @@ void PlatMainW::_ptz_send_cb(UI_PTZ_CMD cmd) {
         connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
         loop.exec();
         _evtworker->send_PTZ_DI_CTL(ctl_info_e);
+#endif
     }
     return;
 }

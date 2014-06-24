@@ -49,6 +49,7 @@ int Settings::writeGrp(QString grp, QString key, QString val) {
         setValue(key, val);
         endGroup();
     }
+    file.flush();
     if(file.isOpen()) {
         file.close();
     }

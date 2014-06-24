@@ -6,6 +6,7 @@
 #include <QXmlStreamAttributes>
 #include <QTime>
 #include <QStringList>
+#include <QFile>
 
 #if defined(Q_OS_WIN)
 #include <winsock2.h>
@@ -26,15 +27,29 @@ SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, char *user_code
     _data.dft_sdp_type = "application/sdp";
     _data.dft_xml_type = "application/xml";
     _data.rtp_playload = 100;
-    _data.local_ip = new char[strlen(local_ip)];
+    try {
+        _data.local_ip = new char[strlen(local_ip) + 1];
+    } catch (...) {
+        qDebug() << "new failed";
+    }
+
     _callinfo.cid = -1;
     _callinfo.did = -1;
+
+    _ptzcallid.cid = -1;
+    _ptzcallid.did = -1;
+    _fptz = 0;
     if(_data.local_ip == NULL) {
         exit(-1);
     }
     strcpy(_data.local_ip, local_ip);
 
-    _data.user_code = new char[strlen(user_code)];
+    try {
+        _data.user_code = new char[strlen(user_code) + 1];
+    } catch (...) {
+        qDebug() << "new failed";
+    }
+
     if(_data.user_code == NULL) {
         exit(-1);
     }
@@ -78,41 +93,56 @@ void SipEvtThr::evtloop() {
                 _prcsINVITE(pevt);
             }
             break;
-        case EXOSIP_CALL_PROCEEDING:
-            {
-                msg2c.clear();
-                msg2c = _fmtMsg("remote proceeding video call");
-                emit succ(msg2c);
+        case EXOSIP_CALL_PROCEEDING: {
+            msg2c.clear();
+            msg2c = _fmtMsg("remote proceeding video call");
+            emit succ(msg2c);
+        }
+            break;
+        case EXOSIP_CALL_RINGING: {
+            msg2c.clear();
+            msg2c = _fmtMsg("recive call ringing msg");
+            emit succ(msg2c);
+        }
+            break;
+        case EXOSIP_CALL_MESSAGE_ANSWERED: {
+            msg2c.clear();
+            msg2c = _fmtMsg("revive client 200 ok msg");
+            emit succ(msg2c);
+        }
+            break;
+        case EXOSIP_CALL_RELEASED: {
+            msg2c.clear();
+            msg2c = _fmtMsg("call release success!");
+            emit succ(msg2c);
             }
             break;
-        case EXOSIP_CALL_RINGING:
-            {
-                msg2c.clear();
-                msg2c = _fmtMsg("recive call ringing msg");
-                emit succ(msg2c);
-            }
+        case EXOSIP_MESSAGE_ANSWERED: {
+            qDebug() << "req status code"<<pevt->request->status_code;
+            qDebug() << "reponse status code " << pevt->response->status_code;
+
+            msg2c.clear();
+            msg2c = _fmtMsg("msg answered 200 ok recived");
+            emit succ(msg2c);
+        }
             break;
-        case EXOSIP_CALL_MESSAGE_ANSWERED:
-            {
-                msg2c.clear();
-                msg2c = _fmtMsg("revive client 200 ok msg");
-                emit succ(msg2c);
-            }
+        case EXOSIP_MESSAGE_REQUESTFAILURE: {
+            qDebug() << "req status code"<<pevt->request->status_code;
+            qDebug() << "reponse status code " << pevt->response->status_code;
+
+            msg2c.clear();
+            msg2c = _fmtMsg("msg req failed!");
+            emit err(msg2c);
+        }
             break;
-        case EXOSIP_CALL_RELEASED:
-            {
-                msg2c.clear();
-                msg2c = _fmtMsg("call release success!");
-                emit succ(msg2c);
-            }
-            break;
-        default:
-            {
-                msg2c.clear();
-                msg2c.append("recive none process msg: Type ");
-                msg2c.append(QString::number(pevt->type));
-                emit warn(_fmtMsg(msg2c));
-            }
+        default: {
+            qDebug() << "req status code"<<pevt->request->status_code;
+            qDebug() << "reponse status code " << pevt->response->status_code;
+            msg2c.clear();
+            msg2c.append("recive none process msg: Type ");
+            msg2c.append(QString::number(pevt->type));
+            emit warn(_fmtMsg(msg2c));
+        }
             break;
         }
     }
@@ -220,6 +250,9 @@ void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
 #endif
 
 
+        qDebug() <<"1."<< Q_FUNC_INFO ;
+        eXosip_lock();
+        qDebug() <<"after lock!"<< Q_FUNC_INFO ;
         osip_message_t *ptzmsg;
         QString ptzxml = info.getXmlMsg();
         int b_ret = eXosip_message_build_request(&ptzmsg, "MESSAGE", to.toStdString().c_str(),
@@ -232,8 +265,38 @@ void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
         osip_message_set_body(ptzmsg, ptzxml.toStdString().c_str(),
                               strlen(ptzxml.toStdString().c_str()));
 
-        eXosip_message_send_request(ptzmsg);
+        if(_fptz == 1 && _ptz_cid_str != NULL) {
+            osip_message_set_call_id(ptzmsg, _ptz_cid_str);
+            osip_call_id_t *_pcid = osip_message_get_call_id(ptzmsg);
+            qDebug() << "set call id is " << _ptz_cid_str;
+            qDebug() << "call id same " << _pcid->number;
+        }
+        b_ret = eXosip_message_send_request(ptzmsg);
+        qDebug() << "send ret for ptz " << b_ret;
+
+        if(_fptz == 0) {
+            osip_call_id_t *pcid = osip_message_get_call_id(ptzmsg);
+            if(pcid == NULL || pcid->number == NULL) {
+                eXosip_unlock();
+                return;
+            }
+            qDebug() << "call id is: " << pcid->number;
+            try {
+                _ptz_cid_str = new char[strlen(pcid->number) + 1];
+            } catch (...) {
+                _fptz = 0;
+                eXosip_unlock();
+                return;
+            }
+            memset(_ptz_cid_str, 0, sizeof(_ptz_cid_str) / sizeof(_ptz_cid_str[0]));
+            strncpy(_ptz_cid_str, pcid->number, strlen(pcid->number));
+            *(_ptz_cid_str + strlen(pcid->number)) = '\0';
+            _fptz = 1;
+        }
+
+        eXosip_unlock();
     }
+    qDebug() << "clist err";
 
 #if 0
     qDebug() << info.getXmlMsg();
@@ -509,6 +572,11 @@ void SipEvtThr::_recContractVia(osip_contact_t *c, osip_via_t *v) {
     if(c != NULL && c->url != NULL &&
        c->url->username != NULL && c->url->host != NULL &&
        v != NULL && v->port != NULL) {
+#if 0
+        QFile _f;
+        _f.setFileName(_uset->fileName());
+        _f.remove();
+#endif
         _uset->writeGrp(c->url->username, "pass", _data.dft_pass);
         _uset->writeGrp(c->url->username, "ip_addr", c->url->host);
         _uset->writeGrp(c->url->username, "port", v->port);

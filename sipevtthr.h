@@ -70,7 +70,9 @@ private:
     struct CallInfo {
         int cid;
         int did;
-    }_callinfo;
+    }_callinfo, _ptzcallid;
+    char *_ptz_cid_str;
+    int _fptz;
     Settings *_uset;
 };
 
