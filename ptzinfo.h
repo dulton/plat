@@ -21,6 +21,7 @@ public:
     void setCamCode(const QString &devcode);
     QString CamCode() const;
     QString getXmlMsg() const;
+    QString getEmStr() const;
 signals:
 
 public slots:
@@ -31,6 +32,7 @@ private:
     SPEED _sp2;
     int _prepara;
     QString _camcode;
+
 };
 
 #endif // PTZINFO_H

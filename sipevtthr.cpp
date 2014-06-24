@@ -255,6 +255,7 @@ void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
 
     eXosip_unlock();
 
+    qDebug() << info.getEmStr();
 #if 0
     qDebug() << info.getXmlMsg();
 

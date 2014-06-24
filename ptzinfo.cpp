@@ -69,3 +69,13 @@ QString PtzInfo::getXmlMsg() const {
     write.write_SIP_End();
     return str;
 }
+
+QString PtzInfo::getEmStr() const {
+#if 0
+    QMetaEnum m = this->metaObject()->enumerator(0);
+    qDebug() << m.valueToKey(0);
+    return QString(m.valueToKey(0));
+#endif
+    return QString("");
+}
+

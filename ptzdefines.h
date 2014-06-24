@@ -1,5 +1,6 @@
 #ifndef PTZDEFINES_H
 #define PTZDEFINES_H
+#include <QObject>
 typedef enum _PTZ_CMD{
     PTZ_ZOOM_FOCUS           = 0x0204,
     PTZ_ZOOM_IN_STOP         = 0x0303,
@@ -63,4 +64,6 @@ typedef enum _CMD_TYPE {
     CMD_CTL,    /*for warm w_wiper lights infrared lock etc...*/
     CMD_NONE
 }CMD_TYPE;
+
+
 #endif // PTZDEFINES_H
