@@ -72,15 +72,13 @@ private:
     struct CallInfo {
         int cid;
         int did;
-    }_callinfo, _ptzcallid;
+    }_callinfo;
     struct UsetInfo {
         QString devcode;
         QString remoteip;
         QString pass;
         int remoteport;
     }_usetinfo;
-    char *_ptz_cid_str;
-    int _fptz;
     Settings *_uset;
 };
 

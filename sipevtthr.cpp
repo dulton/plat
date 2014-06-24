@@ -36,9 +36,6 @@ SipEvtThr::SipEvtThr(int sip_port, int rtp_port, char *local_ip, char *user_code
     _callinfo.cid = -1;
     _callinfo.did = -1;
 
-    _ptzcallid.cid = -1;
-    _ptzcallid.did = -1;
-    _fptz = 0;
     if(_data.local_ip == NULL) {
         exit(-1);
     }
@@ -252,34 +249,10 @@ void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
     osip_message_set_content_type(ptzmsg, _data.dft_xml_type);
     osip_message_set_body(ptzmsg, ptzxml.toStdString().c_str(),
                           strlen(ptzxml.toStdString().c_str()));
-    if(_fptz == 1 && _ptz_cid_str != NULL) {
-        osip_message_set_call_id(ptzmsg, _ptz_cid_str);
-        osip_call_id_t *_pcid = osip_message_get_call_id(ptzmsg);
-        qDebug() << "set call id is " << _ptz_cid_str;
-        qDebug() << "call id same " << _pcid->number;
-    }
+
     b_ret = eXosip_message_send_request(ptzmsg);
     qDebug() << "send ret for ptz " << b_ret;
 
-    if(_fptz == 0) {
-        osip_call_id_t *pcid = osip_message_get_call_id(ptzmsg);
-        if(pcid == NULL || pcid->number == NULL) {
-            eXosip_unlock();
-            return;
-        }
-        qDebug() << "call id is: " << pcid->number;
-        try {
-            _ptz_cid_str = new char[strlen(pcid->number) + 1];
-        } catch (...) {
-            _fptz = 0;
-            eXosip_unlock();
-            return;
-        }
-        memset(_ptz_cid_str, 0, sizeof(_ptz_cid_str) / sizeof(_ptz_cid_str[0]));
-        strncpy(_ptz_cid_str, pcid->number, strlen(pcid->number));
-        *(_ptz_cid_str + strlen(pcid->number)) = '\0';
-        _fptz = 1;
-    }
     eXosip_unlock();
 
 #if 0
