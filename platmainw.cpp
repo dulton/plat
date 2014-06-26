@@ -69,6 +69,17 @@ void PlatMainW::_extUISetUp() {
     ui->btn_invate->setEnabled(false);
     ui->btn_stop->setEnabled(false);
 
+    ptzbtns[0] = ui->b_up;
+    ptzbtns[1] = ui->b_down;
+    ptzbtns[2] = ui->b_left;
+    ptzbtns[3] = ui->b_right;
+    ptzbtns[4] = ui->b_right_up;
+    ptzbtns[5] = ui->b_right_down;
+    ptzbtns[6] = ui->b_left_up;
+    ptzbtns[7] = ui->b_left_down;
+    for(unsigned int i = 0; i < (sizeof(ptzbtns) / sizeof(ptzbtns[0])); i++) {
+        ptzbtns[i]->setEnabled(false);
+    }
 
 }
 
@@ -291,6 +302,12 @@ void PlatMainW::updateResDisp(QString s) {
     }
     if(ui->btn_stop->isEnabled() == false) {
         ui->btn_stop->setEnabled(true);
+    }
+    for(unsigned int i = 0; i < (sizeof(ptzbtns) / sizeof(ptzbtns[0])); i++) {
+        if(ptzbtns[i]->isEnabled() == false) {
+            ptzbtns[i]->setEnabled(true);
+        }
+
     }
     ui->txtDev->clear();
     ui->txtDev->setTextColor(Qt::darkBlue);

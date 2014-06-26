@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QFile>
 #include <QThread>
+#include <QPushButton>
 
 namespace Ui {
 class PlatMainW;
@@ -73,6 +74,7 @@ private:
     char *_usercode;
     char *_camcode;
     int _ptz_timeout;
+    QPushButton *ptzbtns[8];
 
 #if defined(Q_OS_WIN)
     int _ipaddlen;
