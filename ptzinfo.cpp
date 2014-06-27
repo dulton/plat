@@ -4,6 +4,7 @@
 
 PtzInfo::PtzInfo(QString camcode, QObject *parent)
     :QObject(parent) {
+
     _camcode= camcode;
     _ptzcmd = PTZ_CMD_NONE;
     _sp1 = SPEED_NONE;
@@ -78,4 +79,6 @@ QString PtzInfo::getEmStr() const {
 #endif
     return QString("");
 }
+
+
 

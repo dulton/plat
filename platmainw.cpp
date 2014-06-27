@@ -77,9 +77,11 @@ void PlatMainW::_extUISetUp() {
     ptzbtns[5] = ui->b_right_down;
     ptzbtns[6] = ui->b_left_up;
     ptzbtns[7] = ui->b_left_down;
+#if 0
     for(unsigned int i = 0; i < (sizeof(ptzbtns) / sizeof(ptzbtns[0])); i++) {
         ptzbtns[i]->setEnabled(false);
     }
+#endif
 
 }
 
