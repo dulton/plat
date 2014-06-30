@@ -1,6 +1,7 @@
 #ifndef PTZDEFINES_H
 #define PTZDEFINES_H
 #include <QObject>
+#include <QMetaType>
 typedef enum _PTZ_CMD{
     PTZ_ZOOM_FOCUS           = 0x0204,
     PTZ_ZOOM_IN_STOP         = 0x0303,
@@ -65,8 +66,10 @@ typedef enum _CMD_TYPE {
     CMD_NONE
 }CMD_TYPE;
 
+/*
 Q_DECLARE_METATYPE(SPEED)
 Q_DECLARE_METATYPE(PTZ_CMD)
 Q_DECLARE_METATYPE(CMD_TYPE)
+*/
 
 #endif // PTZDEFINES_H

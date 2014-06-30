@@ -2,15 +2,21 @@
 #include <QDebug>
 #include "xmlmsgwriter.h"
 
+
+#define EM_STR(x) #x
+
 PtzInfo::PtzInfo(QString camcode, QObject *parent)
     :QObject(parent) {
 
     _camcode= camcode;
+#if 0
+    qRegisterMetaType<PTZ_CMD>();
+    qRegisterMetaType<SPEED>();
+    qRegisterMetaType<CMD_TYPE>();
+#endif
     _ptzcmd = PTZ_CMD_NONE;
     _sp1 = SPEED_NONE;
     _sp2 = SPEED_NONE;
-    qDebug() << this->metaObject()->enumeratorOffset() << Q_FUNC_INFO;
-    qDebug() << this->metaObject()->enumeratorCount() << Q_FUNC_INFO;
 }
 
 PtzInfo::~PtzInfo() {
@@ -74,13 +80,65 @@ QString PtzInfo::getXmlMsg() const {
 }
 
 QString PtzInfo::getEmStr() const {
+    qDebug() << EM_STR(PtzInfo);
+    QString ret;
+    switch (_ptzcmd) {
+    case PTZ_UP_START:
+        ret = EM_STR(PTZ_UP_START);
+        break;
+    case PTZ_UP_STOP:
+        ret = EM_STR(PTZ_UP_STOP);
+        break;
+    case PTZ_DOWN_START:
+        ret = EM_STR(PTZ_DOWN_START);
+        break;
+    case PTZ_DOWN_STOP:
+        ret = EM_STR(PTZ_DOWN_STOP);
+        break;
+    case PTZ_LEFT_START:
+        ret = EM_STR(PTZ_LEFT_START);
+        break;
+    case PTZ_LEFT_STOP:
+        ret = EM_STR(PTZ_LEFT_STOP);
+        break;
+    case PTZ_RIGHT_START:
+        ret = EM_STR(PTZ_RIGHT_START);
+        break;
+    case PTZ_RIGHT_STOP:
+        ret = EM_STR(PTZ_RIGHT_STOP);
+        break;
+
+    case PTZ_UP_LEFT_START:
+        ret = EM_STR(PTZ_UP_LEFT_START);
+        break;
+    case PTZ_UP_LEFT_STOP:
+        ret = EM_STR(PTZ_UP_LEFT_STOP);
+        break;
+    case PTZ_UP_RIGHT_START:
+        ret = EM_STR(PTZ_UP_RIGHT_START);
+        break;
+    case PTZ_UP_RIGHT_STOP:
+        ret = EM_STR(PTZ_UP_RIGHT_STOP);
+        break;
+    case PTZ_DOWN_LEFT_START:
+        ret = EM_STR(PTZ_DOWN_LEFT_START);
+        break;
+    case PTZ_DOWN_LEFT_STOP:
+        ret = EM_STR(PTZ_DOWN_LEFT_STOP);
+        break;
+    case PTZ_DOWN_RIGHT_START:
+        ret = EM_STR(PTZ_DOWN_RIGHT_START);
+        break;
+    case PTZ_DOWN_RIGHT_STOP:
+        ret = EM_STR(PTZ_DOWN_RIGHT_STOP);
+        break;
+    default:
+        break;
+    }
+    return ret;
 #if 0
     QMetaEnum m = this->metaObject()->enumerator(0);
     qDebug() << m.valueToKey(0);
     return QString(m.valueToKey(0));
 #endif
-    return QString("");
 }
-
-
-

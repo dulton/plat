@@ -222,8 +222,10 @@ void SipEvtThr::send_BYE() {
 void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
 
     _readUset();
+    QString msg;
     if(_chkUset() != 0) {
-        QString msg = _fmtMsg("user set read err");
+        msg.clear();
+        msg = _fmtMsg("user set read err");
         emit err(msg);
         qDebug() << Q_FUNC_INFO << "user set read err";
         return;
@@ -255,7 +257,9 @@ void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
 
     eXosip_unlock();
 
-    qDebug() << info.getEmStr();
+    msg.clear();
+    msg = _fmtMsg("send cmd:  " + info.getEmStr() + "  to client");
+    emit succ(msg);
 #if 0
     qDebug() << info.getXmlMsg();
 
