@@ -26,6 +26,7 @@ public:
     void startRecording(const QString& filePath);
     void stopRecording();
     bool isRecording() const { return m_recording; }
+    bool isStart() const {return m_start; }
 
     QSize videoSize() const;
     void setSize(const QSize &size);
@@ -44,6 +45,7 @@ private:
     libvlc_instance_t* m_vlcInstance;
     libvlc_media_player_t* m_vlcMediaPlayer;
     bool m_recording;
+    bool m_start;
     QString m_recordingFilePath;
     VideoFiltersModel* m_videoFiltersModel;
     QString _localsdp;

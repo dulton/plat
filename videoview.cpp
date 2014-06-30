@@ -32,6 +32,7 @@ VideoView::VideoView(QWidget *parent) :
     m_vlcInstance(libvlc_new(sizeof(vlcArguments) / sizeof(vlcArguments[0]), vlcArguments)),
     m_vlcMediaPlayer(0),
     m_recording(false),
+    m_start(false),
     m_videoFiltersModel(new VideoFiltersModel(m_vlcInstance, this)) {
 
     setAutoFillBackground(true);
@@ -95,6 +96,7 @@ void VideoView::start() {
 #endif
 
     libvlc_media_player_play(m_vlcMediaPlayer);
+    m_start = true;
 }
 
 void VideoView::stop() {
@@ -103,6 +105,7 @@ void VideoView::stop() {
     libvlc_media_player_stop(m_vlcMediaPlayer);
     libvlc_media_player_release(m_vlcMediaPlayer);
     m_vlcMediaPlayer = 0;
+    m_start = false;
 }
 
 void VideoView::takeSnapshot(const QString &filePath) {

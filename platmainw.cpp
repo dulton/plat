@@ -77,7 +77,7 @@ void PlatMainW::_extUISetUp() {
     ptzbtns[5] = ui->b_right_down;
     ptzbtns[6] = ui->b_left_up;
     ptzbtns[7] = ui->b_left_down;
-#if 0
+#if 1
     for(unsigned int i = 0; i < (sizeof(ptzbtns) / sizeof(ptzbtns[0])); i++) {
         ptzbtns[i]->setEnabled(false);
     }
@@ -319,64 +319,97 @@ void PlatMainW::updateResDisp(QString s) {
 /*for ptzs*/
 void PlatMainW::on_b_left_up_pressed() {
     /*para = start same as stop*/
-    _ptz_send_cb(PTZ_UP_LEFT_START);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_UP_LEFT_START);
+    }
+
 }
 void PlatMainW::on_b_left_down_pressed() {
-    _ptz_send_cb(PTZ_DOWN_LEFT_START);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_DOWN_LEFT_START);
+    }
 }
 
 void PlatMainW::on_b_right_up_pressed() {
-    _ptz_send_cb(PTZ_UP_RIGHT_START);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_UP_RIGHT_START);
+    }
 }
 
 void PlatMainW::on_b_right_down_pressed() {
-    _ptz_send_cb(PTZ_DOWN_RIGHT_START);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_DOWN_RIGHT_START);
+    }
 }
 
 void PlatMainW::on_b_up_pressed() {
-    _ptz_send_cb(PTZ_UP_START);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_UP_START);
+    }
 }
 
 void PlatMainW::on_b_down_pressed() {
-    _ptz_send_cb(PTZ_DOWN_START);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_DOWN_START);
+    }
 }
 void PlatMainW::on_b_left_pressed() {
-    _ptz_send_cb(PTZ_LEFT_START);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_LEFT_START);
+    }
 }
 void PlatMainW::on_b_right_pressed() {
-    _ptz_send_cb(PTZ_RIGHT_START);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_RIGHT_START);
+    }
 }
 
 
 void PlatMainW::on_b_right_up_released() {
-    _ptz_send_cb(PTZ_UP_RIGHT_STOP);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_UP_RIGHT_STOP);
+    }
 }
 
 void PlatMainW::on_b_right_released() {
-    _ptz_send_cb(PTZ_RIGHT_STOP);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_RIGHT_STOP);
+    }
 }
 
 void PlatMainW::on_b_right_down_released() {
-    _ptz_send_cb(PTZ_DOWN_RIGHT_STOP);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_DOWN_RIGHT_STOP);
+    }
 }
 
 void PlatMainW::on_b_down_released() {
-    _ptz_send_cb(PTZ_DOWN_STOP);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_DOWN_STOP);
+    }
 }
 
 void PlatMainW::on_b_left_down_released() {
-    _ptz_send_cb(PTZ_DOWN_LEFT_STOP);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_DOWN_LEFT_STOP);
+    }
 }
 
 void PlatMainW::on_b_left_released() {
-    _ptz_send_cb(PTZ_LEFT_STOP);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_LEFT_STOP);
+    }
 
 }
 
 void PlatMainW::on_b_left_up_released() {
-    _ptz_send_cb(PTZ_UP_LEFT_STOP);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_UP_LEFT_STOP);
+    }
 }
 
 void PlatMainW::on_b_up_released() {
-    _ptz_send_cb(PTZ_UP_STOP);
+    if(_chk_can_ctlptz()) {
+        _ptz_send_cb(PTZ_UP_STOP);
+    }
 }

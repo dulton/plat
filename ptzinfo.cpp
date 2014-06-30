@@ -9,6 +9,8 @@ PtzInfo::PtzInfo(QString camcode, QObject *parent)
     _ptzcmd = PTZ_CMD_NONE;
     _sp1 = SPEED_NONE;
     _sp2 = SPEED_NONE;
+    qDebug() << this->metaObject()->enumeratorOffset() << Q_FUNC_INFO;
+    qDebug() << this->metaObject()->enumeratorCount() << Q_FUNC_INFO;
 }
 
 PtzInfo::~PtzInfo() {

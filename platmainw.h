@@ -60,6 +60,7 @@ private:
     int _initExosip();
     void _ptz_send_cb(PTZ_CMD cmd);
     int _chk_ptz_cmd(const PTZ_CMD &cmd);
+    bool _chk_can_ctlptz();
 private:
     Ui::PlatMainW *ui;
     VideoView *_videoview;
@@ -104,4 +105,7 @@ inline int PlatMainW::_chk_ptz_cmd(const PTZ_CMD &cmd) {
     /*other will be add later*/
 }
 
+inline bool PlatMainW::_chk_can_ctlptz() {
+    return _videoview->isStart();
+}
 #endif // PLATMAINW_H
