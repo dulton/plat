@@ -51,7 +51,7 @@ void PlatMainW::_extUISetUp() {
     QSize vsize(ui->videow->size());
     _videoview->setSize(vsize);
 
-#if 1
+#if 0
     /*for debug*/
     _videoview->setHidden(true);
 #endif
@@ -77,11 +77,11 @@ void PlatMainW::_extUISetUp() {
     ptzbtns[5] = ui->b_right_down;
     ptzbtns[6] = ui->b_left_up;
     ptzbtns[7] = ui->b_left_down;
-#if 1
-    for(unsigned int i = 0; i < (sizeof(ptzbtns) / sizeof(ptzbtns[0])); i++) {
+
+    unsigned int btnlen = sizeof(ptzbtns) / sizeof(ptzbtns[0]);
+    for(unsigned int i = 0; i < btnlen; i++) {
         ptzbtns[i]->setEnabled(false);
     }
-#endif
 
 }
 
@@ -305,7 +305,8 @@ void PlatMainW::updateResDisp(QString s) {
     if(ui->btn_stop->isEnabled() == false) {
         ui->btn_stop->setEnabled(true);
     }
-    for(unsigned int i = 0; i < (sizeof(ptzbtns) / sizeof(ptzbtns[0])); i++) {
+    unsigned int btnlen = sizeof(ptzbtns) / sizeof(ptzbtns[0]);
+    for(unsigned int i = 0; i < btnlen; i++) {
         if(ptzbtns[i]->isEnabled() == false) {
             ptzbtns[i]->setEnabled(true);
         }
