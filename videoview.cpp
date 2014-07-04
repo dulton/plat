@@ -22,6 +22,7 @@ static const char* vlcArguments[] = {
     "--no-osd",
     "--no-snapshot-preview",
     "--no-stats",
+    "--no-audio",
     "--no-video-title-show",
     "-vvv"
 };
