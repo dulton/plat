@@ -113,7 +113,8 @@ DEFINES += ENABLE_TRACE
 
 OTHER_FILES += \
     plat.ini \
-    tmplog.txt
+    tmplog.txt \
+    uset.ini
 
 win32:RC_ICONS += $$PWD/icons/app_icon.ico
 
