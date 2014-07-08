@@ -125,6 +125,12 @@ void SipEvtThr::evtloop() {
             emit succ(msg2c);
             }
             break;
+        case EXOSIP_CALL_SERVERFAILURE: {
+            msg2c.clear();
+            msg2c = _fmtMsg("Server Busy! wait and try");
+            emit warn(msg2c);
+            }
+            break;
         case EXOSIP_MESSAGE_ANSWERED: {
             qDebug() << "req status code"<<pevt->request->status_code;
             qDebug() << "reponse status code " << pevt->response->status_code;
