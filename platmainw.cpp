@@ -257,7 +257,10 @@ void PlatMainW::_ptz_send_cb(PTZ_CMD cmd) {
 }
 
 void PlatMainW::on_btn_invate_clicked() {
-    _evtworker->send_INVITE();
+    if(!_videoview->isStart()) {
+        _evtworker->send_INVITE();
+    }
+
 #if 0
     _videoview->setLocalsdp(_sdpfile->fileName());
     _videoview->start();
