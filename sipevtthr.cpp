@@ -124,7 +124,15 @@ void SipEvtThr::evtloop() {
             msg2c.clear();
             msg2c = _fmtMsg("call release success!");
             emit succ(msg2c);
+            if(pevt->cid == _callinfo.cid) {
+                _callinfo.cid = -1;
+                _callinfo.did = -1;
+                msg2c.clear();
+                msg2c = _fmtMsg("video call release success!");
+                emit succ(msg2c);
             }
+
+        }
             break;
         case EXOSIP_CALL_SERVERFAILURE: {
             msg2c.clear();
@@ -170,6 +178,12 @@ void SipEvtThr::evtloop() {
 */
 void SipEvtThr::send_INVITE() {
 
+    if(_callinfo.cid != -1 || _callinfo.did != -1) {
+        QString msg;
+        msg = _fmtMsg("Our Call Not Release");
+        emit warn(msg);
+        return;
+    }
     _readUset();
     if(_chkUset() != 0) {
         QString msg = _fmtMsg("user set read err");
