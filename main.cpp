@@ -1,6 +1,8 @@
 #include "platmainw.h"
 #include <QApplication>
 
+
+#ifdef DBG_MODE
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();
@@ -19,11 +21,13 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
         abort();
     }
 }
-
+#endif
 
 int main(int argc, char *argv[])
 {
+#ifdef DBG_MODE
     qInstallMessageHandler(myMessageOutput);
+#endif
     QApplication a(argc, argv);
     a.setWindowIcon(QIcon(":/icons/icons/app_icon.png"));
     PlatMainW w;

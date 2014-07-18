@@ -81,6 +81,13 @@ win32:CONFIG(debug, debug|release) {
     win32: PRE_TARGETDEPS += $$PWD/exosip2_Rlib/eXosip.lib
 }
 
+
+unix:CONFIG (debug, debug|release) {
+    DEFINES += DBG_MODE
+} else {
+    DEFINES += RLS_MODE
+}
+
 unix:LIBS += -L/usr/local/lib -losip2
 unix:LIBS += -L/usr/local/lib -losipparser2
 unix:LIBS += -L/usr/local/lib -leXosip2
