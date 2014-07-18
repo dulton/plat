@@ -8,6 +8,7 @@
 #include <QStringList>
 #include <QFile>
 
+
 #if defined(Q_OS_WIN)
 #include <winsock2.h>
 #include "eXosip2/eXosip.h"
@@ -228,6 +229,7 @@ void SipEvtThr::send_BYE() {
 void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
 
     _readUset();
+    mt.lock();
     QString msg;
     if(_chkUset() != 0) {
         msg.clear();
@@ -266,6 +268,7 @@ void SipEvtThr::send_PTZ_DI_CTL(const PtzInfo &info) {
     msg.clear();
     msg = _fmtMsg("send cmd:  " + info.getEmStr() + "  to client");
     emit succ(msg);
+    mt.unlock();
 #if 0
     qDebug() << info.getXmlMsg();
 

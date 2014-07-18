@@ -207,7 +207,7 @@ void PlatMainW::_initSipEvtListener() {
 int PlatMainW::_initExosip() {
 
     /*for debug*/
-    osip_trace_level_t t = TRACE_LEVEL1;
+    osip_trace_level_t t = TRACE_LEVEL7;
     TRACE_INITIALIZE(t, stdout);
 
     int ret = eXosip_init();

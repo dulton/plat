@@ -8,6 +8,7 @@
 #include <QString>
 #include "settings.h"
 #include "ptzinfo.h"
+#include <QMutex>
 
 class SipEvtThr : public QObject
 {
@@ -80,6 +81,7 @@ private:
         int remoteport;
     }_usetinfo;
     Settings *_uset;
+    QMutex mt;
 };
 
 inline int SipEvtThr::_chkRegInfo(char *resp, char *username,
