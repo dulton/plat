@@ -17,6 +17,12 @@ private:
     QString *_str;
     void _addNewLine();
     void _fixencodingstr(QString *str);
+    const QString _Item;
+    const QString _Code;
+    const QString _Command;
+    const QString _CommandPara1;
+    const QString _CommandPara2;
+    const QString _CommandPara3;
 };
 
 #endif // XMLMSGWRITER_H

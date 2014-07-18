@@ -3,7 +3,13 @@
 #include <QTextCodec>
 
 XmlMsgWriter::XmlMsgWriter(QString *out)
-    :QXmlStreamWriter(out){
+    :QXmlStreamWriter(out),
+     _Item("Item"),
+     _Code("Code"),
+     _Command("Command"),
+     _CommandPara1("CommandPara1"),
+     _CommandPara2("CommandPara2"),
+     _CommandPara3("CommandPara3"){
     _str = out;
 }
 
@@ -32,13 +38,13 @@ void XmlMsgWriter::write_PtzItem(const QString &devcode,
             p1.isEmpty() || p2.isEmpty()) {
         return;
     }
-    writeStartElement("Item");
-    writeAttribute("Code", devcode);
-    writeAttribute("Command", cmd);
-    writeAttribute("CommandPara1", p1);
-    writeAttribute("CommandPara2", p2);
+    writeStartElement(_Item);
+    writeAttribute(_Code, devcode);
+    writeAttribute(_Command, cmd);
+    writeAttribute(_CommandPara1, p1);
+    writeAttribute(_CommandPara2, p2);
     if(!p3.isEmpty()) {
-        writeAttribute("CommandPara3", p3);
+        writeAttribute(_CommandPara3, p3);
     }
     writeEndElement();
 }
