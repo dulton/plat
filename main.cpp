@@ -2,6 +2,7 @@
 #include <QApplication>
 
 
+#if 0
 #ifdef DBG_MODE
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -23,10 +24,14 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 }
 #endif
 
+#endif
+
 int main(int argc, char *argv[])
 {
+#if 0
 #ifdef DBG_MODE
     qInstallMessageHandler(myMessageOutput);
+#endif
 #endif
     QApplication a(argc, argv);
     a.setWindowIcon(QIcon(":/icons/icons/app_icon.png"));
